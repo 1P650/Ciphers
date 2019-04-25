@@ -1,7 +1,5 @@
 package Basic;
 
-import java.util.Arrays;
-
 public class bitUtil {
     private static final int BYTE_BITSIZE = 8;
     private static final int SHORT_BITSIZE = 16;
