@@ -1,17 +1,14 @@
 package BlockCiphers;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import HashFunctions.SHA512;
 import java.security.SecureRandom;
+
+
 public class Aardvark implements Basic.Cipher {
     private byte[] K;
-    private static MessageDigest SHA512;
+    private static HashFunctions.SHA512 SHA512;
     private Aardvark(){
-        try {
-            SHA512 = MessageDigest.getInstance("SHA-512");
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
+        SHA512 = new SHA512();
     }
 
     public static Aardvark getInstance(){
@@ -69,7 +66,7 @@ public class Aardvark implements Basic.Cipher {
     }
 
     private static byte[] H(byte[] input){
-        return SHA512.digest(input);
+        return SHA512.process(input);
 
     }
     private static byte[] H(byte[] input, byte[] K){
@@ -77,7 +74,7 @@ public class Aardvark implements Basic.Cipher {
         System.arraycopy(K,0,a,0,K.length);
         System.arraycopy(input,0,a,K.length,input.length);
         System.arraycopy(K,0,a,input.length + K.length,K.length);
-        return SHA512.digest(a);
+        return SHA512.process(a);
     }
 
 }
