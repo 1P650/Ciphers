@@ -134,7 +134,7 @@ public class SHA512 implements HashFunction {
         for (int i = l_orig+1; i < l_orig + o + 8; i++) {
             prepared[i] = (byte) 0b0000000;
         }
-        byte[] coping = bitUtil.longToByteArray(l_orig);
+        byte[] coping = bitUtil.longToByteArray(l_orig<<3);
         System.arraycopy(coping,0,prepared,prepared.length - coping.length,coping.length);
         return prepared;
     }
