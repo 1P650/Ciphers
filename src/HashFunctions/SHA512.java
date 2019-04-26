@@ -49,8 +49,8 @@ public class SHA512 implements HashFunction {
             System.arraycopy(chunk_L, 0, words_64bit, 0, chunk_L.length);
             long s0, s1;
             for (int j = 16; j < i_num; j++) {
-                s0 = (bitUtil.rotateR(words_64bit[j - 15], 1)) ^ (bitUtil.rotateR(words_64bit[j - 15], 8)) ^ (words_64bit[j - 15] >> 7);
-                s1 = (bitUtil.rotateR(words_64bit[j - 2], 19)) ^ (bitUtil.rotateR(words_64bit[j - 2], 61)) ^ (words_64bit[j - 2] >> 6);
+                s0 = (bitUtil.rotateR(words_64bit[j - 15], 1)) ^ (bitUtil.rotateR(words_64bit[j - 15], 8)) ^ (words_64bit[j - 15] >>> 7);
+                s1 = (bitUtil.rotateR(words_64bit[j - 2], 19)) ^ (bitUtil.rotateR(words_64bit[j - 2], 61)) ^ (words_64bit[j - 2] >>> 6);
                 words_64bit[j] = words_64bit[j - 16] + s0 + words_64bit[j - 7] + s1;
             }
             long a = h0;
