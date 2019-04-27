@@ -4,8 +4,7 @@ import Basic.HashFunction;
 import Basic.bitUtil;
 
 public class SHA512 implements HashFunction {
-    private final byte i_num = 80;
-    private long [] K = new long[]{
+    private final long [] K = new long[]{
             0x428A2F98D728AE22L, 0x7137449123EF65CDL, 0xB5C0FBCFEC4D3B2FL, 0xE9B5DBA58189DBBCL, 0x3956C25BF348B538L,
             0x59F111F1B605D019L, 0x923F82A4AF194F9BL, 0xAB1C5ED5DA6D8118L, 0xD807AA98A3030242L, 0x12835B0145706FBEL,
             0x243185BE4EE4B28CL, 0x550C7DC3D5FFB4E2L, 0x72BE5D74F27B896FL, 0x80DEB1FE3B1696B1L, 0x9BDC06A725C71235L,
@@ -24,35 +23,38 @@ public class SHA512 implements HashFunction {
             0x431D67C49C100D4CL, 0x4CC5D4BECB3E42B6L, 0x597F299CFC657E2AL, 0x5FCB6FAB3AD6FAECL, 0x6C44198C4A475817L
     };
 
-    long h0 = 0x6A09E667F3BCC908L;
-    long h1 = 0xBB67AE8584CAA73BL;
-    long h2 = 0x3C6EF372FE94F82BL;
-    long h3 = 0xA54FF53A5F1D36F1L;
-    long h4 = 0x510E527FADE682D1L;
-    long h5 = 0x9B05688C2B3E6C1FL;
-    long h6 = 0x1F83D9ABFB41BD6BL;
-    long h7 = 0x5BE0CD19137E2179L;
-
-
-
-
+    private long h0 = 0x6A09E667F3BCC908L;
+    private long h1 = 0xBB67AE8584CAA73BL;
+    private long h2 = 0x3C6EF372FE94F82BL;
+    private long h3 = 0xA54FF53A5F1D36F1L;
+    private long h4 = 0x510E527FADE682D1L;
+    private long h5 = 0x9B05688C2B3E6C1FL;
+    private long h6 = 0x1F83D9ABFB41BD6BL;
+    private long h7 = 0x5BE0CD19137E2179L;
 
 
     @Override
     public byte[] process(byte[] input) {
         byte[] input_prepared = padding_process(input);
         for (int i = 0; i < input_prepared.length; i += 128) {
+
             long[] words_64bit = new long[80];
             byte[] chunk = new byte[128];
             System.arraycopy(input_prepared, i, chunk, 0, chunk.length);
+
             long[] chunk_L = bitUtil.byteArrayToLongArray(chunk);
             System.arraycopy(chunk_L, 0, words_64bit, 0, chunk_L.length);
+
             long s0, s1;
+            byte i_num = 80;
+
             for (int j = 16; j < i_num; j++) {
-                s0 = (bitUtil.rotateR(words_64bit[j - 15], 1)) ^ (bitUtil.rotateR(words_64bit[j - 15], 8)) ^ (words_64bit[j - 15] >>> 7);
-                s1 = (bitUtil.rotateR(words_64bit[j - 2], 19)) ^ (bitUtil.rotateR(words_64bit[j - 2], 61)) ^ (words_64bit[j - 2] >>> 6);
-                words_64bit[j] = words_64bit[j - 16] + s0 + words_64bit[j - 7] + s1;
+               s0 = (bitUtil.rotateR(words_64bit[j - 15], 1)) ^ (bitUtil.rotateR(words_64bit[j - 15], 8)) ^ (words_64bit[j - 15] >>> 7);
+               s1 = (bitUtil.rotateR(words_64bit[j - 2], 19)) ^ (bitUtil.rotateR(words_64bit[j - 2], 61)) ^ (words_64bit[j - 2] >>> 6);
+
+               words_64bit[j] = words_64bit[j - 16] + s0 + words_64bit[j - 7] + s1;
             }
+
             long a = h0;
             long b = h1;
             long c = h2;
@@ -61,12 +63,17 @@ public class SHA512 implements HashFunction {
             long f = h5;
             long g = h6;
             long h = h7;
+
             for (int q = 0; q < i_num; q++) {
-                long S1 = (bitUtil.rotateR(e, 14)) ^ (bitUtil.rotateR(e, 18)) ^ (bitUtil.rotateR(e, 41));
-                long ch = (e & f) ^ ((~e) & g);
-                long temp1 = h + S1 + ch + K[q] + words_64bit[q];
+
                 long S0 = (bitUtil.rotateR(a, 28)) ^ (bitUtil.rotateR(a, 34)) ^ (bitUtil.rotateR(a, 39));
+                long S1 = (bitUtil.rotateR(e, 14)) ^ (bitUtil.rotateR(e, 18)) ^ (bitUtil.rotateR(e, 41));
+
+                long ch = (e & f) ^ ((~e) & g);
                 long maj = (a & b) ^ (a & c) ^ (b & c);
+
+
+                long temp1 = h + S1 + ch + K[q] + words_64bit[q];
                 long temp2 = S0 + maj;
 
                 h = g;
@@ -78,6 +85,7 @@ public class SHA512 implements HashFunction {
                 b = a;
                 a = temp1 + temp2;
             }
+
             h0 = h0 + a;
             h1 = h1 + b;
             h2 = h2 + c;
@@ -90,17 +98,18 @@ public class SHA512 implements HashFunction {
 
         }
 
-        long[] hash_L = new long[8];
-        hash_L[0] = h0;
-        hash_L[1] = h1;
-        hash_L[2] = h2;
-        hash_L[3] = h3;
-        hash_L[4] = h4;
-        hash_L[5] = h5;
-        hash_L[6] = h6;
-        hash_L[7] = h7;
 
-        byte[] hash = bitUtil.longArrayToByteArray(hash_L);
+        byte[] hash = bitUtil.longArrayToByteArray(
+                new long[]{
+                        h0,
+                        h1,
+                        h2,
+                        h3,
+                        h4,
+                        h5,
+                        h6,
+                        h7
+                });
         this.reset();
         return hash;
 }
@@ -121,19 +130,12 @@ public class SHA512 implements HashFunction {
     private byte[] padding_process(byte[] input){
         int l_orig = input.length;
         int l = l_orig<<3;
-        int k =0;
-        while ((k + l+1) % 1024 != 896 )k++;
-        k++;
-        l+=k;
-        l+=128;
-        int finalMsgLen = l>>3;
-        byte[] prepared = new byte[finalMsgLen];
+        int k = 2;
+        while ((l+k) % 1024 != 896)k++;
+        l+=k+128;
+        byte[] prepared = new byte[l>>3];
         System.arraycopy(input,0,prepared,0,l_orig);
         prepared[l_orig] = (byte) 0b10000000;
-        int o = (k>>8) -1;
-        for (int i = l_orig+1; i < l_orig + o + 8; i++) {
-            prepared[i] = (byte) 0b0000000;
-        }
         byte[] coping = bitUtil.longToByteArray(l_orig<<3);
         System.arraycopy(coping,0,prepared,prepared.length - coping.length,coping.length);
         return prepared;
