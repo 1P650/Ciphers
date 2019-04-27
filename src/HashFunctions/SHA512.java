@@ -4,6 +4,8 @@ import Basic.HashFunction;
 import Basic.bitUtil;
 
 public class SHA512 implements HashFunction {
+
+    public static final int LENGTH = 64;
     private final long [] K = new long[]{
             0x428A2F98D728AE22L, 0x7137449123EF65CDL, 0xB5C0FBCFEC4D3B2FL, 0xE9B5DBA58189DBBCL, 0x3956C25BF348B538L,
             0x59F111F1B605D019L, 0x923F82A4AF194F9BL, 0xAB1C5ED5DA6D8118L, 0xD807AA98A3030242L, 0x12835B0145706FBEL,
@@ -124,6 +126,11 @@ public class SHA512 implements HashFunction {
         h5 = 0x9B05688C2B3E6C1FL;
         h6 = 0x1F83D9ABFB41BD6BL;
         h7 = 0x5BE0CD19137E2179L;
+    }
+
+    @Override
+    public int getLength() {
+        return LENGTH;
     }
 
 
