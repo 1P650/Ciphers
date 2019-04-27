@@ -1,14 +1,15 @@
 package BlockCiphers;
 
+import Basic.HashFunction;
 import HashFunctions.SHA512;
 import java.security.SecureRandom;
 
 
 public class Aardvark implements Basic.Cipher {
     private byte[] K;
-    private static HashFunctions.SHA512 SHA512;
+    private  HashFunction hashFunction;
     private Aardvark(){
-        SHA512 = new SHA512();
+        this.hashFunction = new SHA512();
     }
 
     public static Aardvark getInstance(){
@@ -19,6 +20,8 @@ public class Aardvark implements Basic.Cipher {
     public void setKey(byte[] K) {
         this.K = K;
     }
+
+    public void setHashFunction(HashFunction hashFunction){this.hashFunction = hashFunction;}
 
     @Override
     public byte[] encrypt(byte[] P) {
@@ -36,10 +39,11 @@ public class Aardvark implements Basic.Cipher {
 
     @Override
     public byte[] decrypt(byte[] C) {
-        byte[] C1 = new byte[64];
-        byte[] C0 = new byte[C.length - 64];
-        System.arraycopy(C,0,C1,0,64);
-        System.arraycopy(C, C1.length, C0, 0, C.length-64);
+        int len = hashFunction.getLength();
+        byte[] C1 = new byte[len];
+        byte[] C0 = new byte[C.length - len];
+        System.arraycopy(C,0,C1,0,len);
+        System.arraycopy(C, C1.length, C0, 0, C.length-len);
         byte[] C2 = H(C1, K);
         byte[] C3 = S(C2, C0.length);
         byte[] P = xor(C0,C3);
@@ -65,16 +69,16 @@ public class Aardvark implements Basic.Cipher {
         return bytes;
     }
 
-    private static byte[] H(byte[] input){
-        return SHA512.process(input);
+    private  byte[] H(byte[] input){
+        return hashFunction.process(input);
 
     }
-    private static byte[] H(byte[] input, byte[] K){
+    private  byte[] H(byte[] input, byte[] K){
         byte[] a = new byte[input.length + K.length*2];
         System.arraycopy(K,0,a,0,K.length);
         System.arraycopy(input,0,a,K.length,input.length);
         System.arraycopy(K,0,a,input.length + K.length,K.length);
-        return SHA512.process(a);
+        return hashFunction.process(a);
     }
 
 }
