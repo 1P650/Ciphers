@@ -196,6 +196,13 @@ public  class bitUtil {
         }
         System.out.println();
     }
+    
+    public static void printBinary_byteArray(byte[] input){
+        for (byte b:input) {
+            System.out.print(Integer.toBinaryString(b));
+        }
+        System.out.println();
+    }
 
 
 
