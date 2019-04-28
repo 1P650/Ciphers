@@ -1,15 +1,17 @@
 package BlockCiphers;
 
 import Basic.HashFunction;
+import Basic.PRN_generator;
 import HashFunctions.SHA512;
-import java.security.SecureRandom;
-
+import RND_generators.Linear_Generator;
 
 public class Aardvark implements Basic.Cipher {
     private byte[] K;
-    private  HashFunction hashFunction;
+    private HashFunction hashFunction;
+    private PRN_generator generator;
     private Aardvark(){
         this.hashFunction = new SHA512();
+        this.generator = new Linear_Generator();
     }
 
     public static Aardvark getInstance(){
@@ -22,6 +24,7 @@ public class Aardvark implements Basic.Cipher {
     }
 
     public void setHashFunction(HashFunction hashFunction){this.hashFunction = hashFunction;}
+    public void setGenerator(PRN_generator generator){this.generator = generator;}
 
     @Override
     public byte[] encrypt(byte[] P) {
@@ -49,7 +52,7 @@ public class Aardvark implements Basic.Cipher {
         byte[] P = xor(C0,C3);
         return P;
     }
-    private static byte[] xor(byte[] a, byte[] b){
+    private  byte[] xor(byte[] a, byte[] b){
         for (int i = 0; i < a.length; i++) {
             a[i]^=b[i];
         }
@@ -61,11 +64,10 @@ public class Aardvark implements Basic.Cipher {
         this.setKey(new byte[0]);
     }
 
-    private static byte[] S(byte[] seed, int S_len){
-        SecureRandom random = new SecureRandom();
-        random.setSeed(seed);
+    private  byte[] S(byte[] seed, int S_len){
+        generator.setSeed(seed);
         byte[] bytes = new byte[S_len];
-        random.nextBytes(bytes);
+        bytes = generator.nextBytes(bytes);
         return bytes;
     }
 
