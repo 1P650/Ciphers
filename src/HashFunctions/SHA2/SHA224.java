@@ -108,14 +108,14 @@ public class SHA224 implements HashFunction {
 
     @Override
     public void reset() {
-        h0 = 0x6a09e667;
-        h1 = 0xbb67ae85;
-        h2 = 0x3c6ef372;
-        h3 = 0xa54ff53a;
-        h4 = 0x510e527f;
-        h5 = 0x9b05688c;
-        h6 = 0x1f83d9ab;
-        h7 = 0x5be0cd19;
+        h0 = 0xC1059ED8;
+        h1 = 0x367CD507;
+        h2 = 0x3070DD17;
+        h3 = 0xF70E5939;
+        h4 = 0xFFC00B31;
+        h5 = 0x68581511;
+        h6 = 0x64F98FA7;
+        h7 = 0xBEFA4FA4;
     }
 
     @Override
