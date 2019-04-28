@@ -1,6 +1,6 @@
 # Ciphers
 
-Just implementation of different ciphers/hash functions.
+Just implementation of different ciphers/hash functions/others.
 
 ## Contains 
 ### Ciphers
