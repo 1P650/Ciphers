@@ -16,4 +16,4 @@ Simple linear congruential PRNG
 ***
 
 ### Utils
-BitUtil (bit rotation, long to byte array and back conversion, long array to byte array and back conversion)
+BitUtil (bit rotation, type conversion, hex&binary print)
