@@ -4,8 +4,8 @@ Just implementation of different ciphers/hash functions.
 
 ## Contains 
 
-Aardvark with HashFunctions.SHA512 as H() and Javax.crypto.SecureRandom as S()
+Aardvark
 ***
-SHA512 
+SHA512 & SHA256
 ***
 BitUtil (bit rotation, long to byte array and back conversion, long array to byte array and back conversion)
