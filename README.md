@@ -6,7 +6,7 @@ Just implementation of different ciphers/hash functions.
 
 Aardvark
 ***
-SHA512 & SHA256
+SHA2: SHA224,SHA256,SHA384,SHA512,SHA512/256,SHA512/224
 ***
 Simple linear congruential PRNG
 ***
