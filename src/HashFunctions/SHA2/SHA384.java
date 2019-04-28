@@ -115,14 +115,14 @@ public class SHA384 implements HashFunction {
 
     @Override
     public void reset() {
-        h0 = 0x6A09E667F3BCC908L;
-        h1 = 0xBB67AE8584CAA73BL;
-        h2 = 0x3C6EF372FE94F82BL;
-        h3 = 0xA54FF53A5F1D36F1L;
-        h4 = 0x510E527FADE682D1L;
-        h5 = 0x9B05688C2B3E6C1FL;
-        h6 = 0x1F83D9ABFB41BD6BL;
-        h7 = 0x5BE0CD19137E2179L;
+        h0 = 0xCBBB9D5DC1059ED8L;
+        h1 = 0x629A292A367CD507L;
+        h2 = 0x9159015A3070DD17L;
+        h3 = 0x152FECD8F70E5939L;
+        h4 = 0x67332667FFC00B31L;
+        h5 = 0x8EB44A8768581511L;
+        h6 = 0xDB0C2E0D64F98FA7L;
+        h7 = 0x47B5481DBEFA4FA4L;
     }
 
     @Override
