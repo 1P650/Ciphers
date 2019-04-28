@@ -120,14 +120,14 @@ public class SHA512_256 implements HashFunction {
 
         @Override
         public void reset() {
-            h0 = 0x6A09E667F3BCC908L;
-            h1 = 0xBB67AE8584CAA73BL;
-            h2 = 0x3C6EF372FE94F82BL;
-            h3 = 0xA54FF53A5F1D36F1L;
-            h4 = 0x510E527FADE682D1L;
-            h5 = 0x9B05688C2B3E6C1FL;
-            h6 = 0x1F83D9ABFB41BD6BL;
-            h7 = 0x5BE0CD19137E2179L;
+            h0 = 0x22312194FC2BF72CL;
+            h1 = 0x9F555FA3C84C64C2L;
+            h2 = 0x2393B86B6F53B151L;
+            h3 = 0x963877195940EABDL;
+            h4 = 0x96283EE2A88EFFE3L;
+            h5 = 0xBE5E1E2553863992L;
+            h6 = 0x2B0199FC2C85B8AAL;
+            h7 = 0x0EB72DDC81C52CA2L;
         }
 
         @Override
