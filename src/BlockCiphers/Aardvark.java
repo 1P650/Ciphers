@@ -2,7 +2,7 @@ package BlockCiphers;
 
 import Basic.HashFunction;
 import Basic.PRN_generator;
-import HashFunctions.SHA512;
+import HashFunctions.SHA2.SHA512;
 import RND_generators.Linear_Generator;
 
 public class Aardvark implements Basic.Cipher {
