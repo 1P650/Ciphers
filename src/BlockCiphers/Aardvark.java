@@ -11,7 +11,7 @@ public class Aardvark implements Basic.Cipher {
     private PRN_generator generator;
     private Aardvark(){
         this.hashFunction = new SHA512();
-        this.generator = new Linear_Generator();
+        this.generator = new ISAAC();
     }
 
     public static Aardvark getInstance(){
