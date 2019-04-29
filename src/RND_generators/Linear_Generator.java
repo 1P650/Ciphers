@@ -10,7 +10,6 @@ public class Linear_Generator implements PRN_generator {
           this.next = bitUtil.byteArrayToLong(seed);
     }
     public void setSeed(long seed){
-        System.out.println(seed);
        this.next = seed;
     }
 
@@ -29,5 +28,10 @@ public class Linear_Generator implements PRN_generator {
         }
         return a;
 
+    }
+
+    @Override
+    public void reset() {
+        this.next = 0;
     }
 }
