@@ -24,7 +24,7 @@ public  class bitUtil {
     }
 
 
-    public short rotateR(short i, int bits) {
+    public static short rotateR(short i, int bits) {
         return (short) ((i >>> bits) | (i << (SHORT_BITSIZE - bits)));
     }
 
