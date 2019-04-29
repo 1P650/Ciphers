@@ -1,4 +1,4 @@
-package RND_generators;
+ppackage RND_generators;
 
 import Basic.PRN_generator;
 import Basic.bitUtil;
@@ -86,5 +86,11 @@ public class ISAAC implements PRN_generator {
         }
 
         return s;
+    }
+    public void reset(){
+        this.internalState = new int[256];
+        this.a = 0;
+        this.b = 0;
+        this.c = 0;
     }
 }
