@@ -56,7 +56,6 @@ public class ISAAC implements PRN_generator {
     }
 
     private static byte[] mix(byte[] s) {
-        byte m = 0;
         for (int i = 0; i < s.length - 8; i += 8) {
             s[i] ^= s[i + 1] << 11;
             s[i + 3] += s[i];
@@ -82,7 +81,7 @@ public class ISAAC implements PRN_generator {
             s[i + 7] ^= s[i] >>> 9;
             s[i + 2] += s[i + 7];
             s[i] += s[i + 1];
-            m++;
+  
         }
 
         return s;
