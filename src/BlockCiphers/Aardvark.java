@@ -62,12 +62,14 @@ public class Aardvark implements Basic.Cipher {
     @Override
     public void reset() {
         this.setKey(new byte[0]);
+       
     }
 
     private  byte[] S(byte[] seed, int S_len){
         generator.setSeed(seed);
         byte[] bytes = new byte[S_len];
         bytes = generator.nextBytes(bytes);
+        generator.reset();
         return bytes;
     }
 
