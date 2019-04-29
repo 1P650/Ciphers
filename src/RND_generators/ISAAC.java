@@ -1,4 +1,4 @@
-ppackage RND_generators;
+package RND_generators;
 
 import Basic.PRN_generator;
 import Basic.bitUtil;
