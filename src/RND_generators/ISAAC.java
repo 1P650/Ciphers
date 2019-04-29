@@ -33,7 +33,7 @@ public class ISAAC implements PRN_generator {
         return retq;
     }
 
-    private int f(int n, int i) {
+    private static int f(int n, int i) {
         switch (i % 4) {
             case 1:
                 return n >> 6;
