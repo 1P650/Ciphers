@@ -8,8 +8,8 @@ Just implementation of different ciphers/hash functions/others.
 * Aardvark
 ***
 ### Hash Functions
-#### SHA1
-#### SHA2
+* SHA1
+###### SHA2
 * SHA224, SHA256, SHA384, SHA512, SHA512/256, SHA512/224
 ***
 ### Pseudorandom number generators
