@@ -17,4 +17,4 @@ Just implementation of different ciphers/hash functions/others.
 ***
 
 ### Utils
-BitUtil (bit rotation, type conversion, hex&binary print)
+* BitUtil (bit rotation, type conversion, hex&binary print)
