@@ -66,6 +66,8 @@ public class GOST_89 implements Cipher {
 
 
     private class GOST_algorithm {
+        private final int C2 = 0x1010101;
+        private final int C1 = 0x1010104;
         private final byte[][] S = new byte[][]{
                 {0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xA, 0xB, 0xC, 0xD, 0xE, 0xF},
                 {0xC, 0x4, 0x6, 0x2, 0xA, 0x5, 0xB, 0x9, 0xE, 0x8, 0xD, 0x7, 0x0, 0x3, 0xF, 0x1},
@@ -121,9 +123,7 @@ public class GOST_89 implements Cipher {
              }
              return encrypted;
         }
-
-
-        byte[] decryptInECB(byte[] input) {
+         byte[] decryptInECB(byte[] input) {
             if(input.length % 8 !=0) throw new GOST_exception("In ECB mode input length must be multiple of 8 (64 bits)");
             byte[] decrypted = new byte[input.length];
             byte[][] splittedKey_reversed = splittedKey.clone();
@@ -148,15 +148,62 @@ public class GOST_89 implements Cipher {
             return decrypted;
         }
 
+
+        byte[] encryptInGamming(byte[] input) {
+            if(this.IV == null) throw new GOST_exception("Initialization Vector is not set! Set it with GOST_89.setIV(byte[] IV)");
+            byte[] gamma = generateGamma(this.IV,input.length);
+            return bitUtil.xor(input,gamma);
+        }
+
+        private byte[] generateGamma(byte[] iv,int len) {
+            byte[] iv_clone = encryptInECB(iv);
+            byte[] gamma = new byte[len];
+            while (len%8 !=0) len++;
+            byte[] gamma_extended = new byte[len];
+            byte[] N1 = new byte[4];
+            byte[] N2 = new byte[4];
+            System.arraycopy(iv_clone,0,N1,0,4);
+            System.arraycopy(iv_clone,4,N2,0,4);
+            N1 = bitUtil.intToByteArray(bitUtil.byteArrayToInt(N1) + C2);
+            N2 = bitUtil.intToByteArray(bitUtil.byteArrayToInt(N2) + C1);
+            byte[] gamma_1 = new byte[8];
+            System.arraycopy(N1,0,gamma_1,0,4);
+            System.arraycopy(N2,0,gamma_1,4,4);
+            gamma_1 = encryptInECB(gamma_1);
+            System.arraycopy(gamma_1,0,gamma_extended,0,8);
+
+            for (int i = 0; i < len-8; i+=8) {
+             N1 = new byte[4];
+             N2 = new byte[4];
+             System.arraycopy(gamma_extended,i,N1,0,4);
+             System.arraycopy(gamma_extended,i+4,N2,0,4);
+             N1 = bitUtil.intToByteArray(bitUtil.byteArrayToInt(N1) + C2);
+             N2 = bitUtil.intToByteArray(bitUtil.byteArrayToInt(N2) + C1);
+             gamma_1 = new byte[8];
+             System.arraycopy(N1,0,gamma_1,0,4);
+             System.arraycopy(N2,0,gamma_1,4,4);
+             gamma_1 = encryptInECB(gamma_1);
+             System.arraycopy(gamma_1,0,gamma_extended,i+8,8);
+            }
+            System.arraycopy(gamma_extended,0,gamma,0,gamma.length);
+            return gamma;
+        }
+
+        byte[] decryptInGamming(byte[] input) {
+            if(this.IV == null) throw new GOST_exception("Initialization Vector is not set! Set it with GOST_89.setIV(byte[] IV)");
+            byte[] gamma = generateGamma(this.IV,input.length);
+            return bitUtil.xor(input,gamma);
+        }
+
+
+
+
          byte[] encryptInCFB(byte[] input) {
             if(this.IV == null) throw new GOST_exception("Initialization Vector is not set! Set it with GOST_89.setIV(byte[] IV)");
             return null;
         }
 
-         byte[] encryptInGamming(byte[] input) {
-            if(this.IV == null) throw new GOST_exception("Initialization Vector is not set! Set it with GOST_89.setIV(byte[] IV)");
- return null;
-        }
+
 
          byte[] doMac(byte[] input) {
             return null;
@@ -168,9 +215,7 @@ public class GOST_89 implements Cipher {
             return null;
         }
 
-         byte[] decryptInGamming(byte[] input) {
-            return null;
-        }
+
 
          private byte[] f(byte[] A, byte[] Ki){
             byte[] A_Ki = bitUtil.intToByteArray((bitUtil.byteArrayToInt(A) + bitUtil.byteArrayToInt(Ki)));
@@ -199,3 +244,4 @@ public class GOST_89 implements Cipher {
 
 
 }
+
