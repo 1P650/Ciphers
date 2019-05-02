@@ -208,7 +208,7 @@ public class algorithmUtil {
     }
     public static <Type> int indexOfElement(Type[] input, Type element){
         for (int i = 0; i < input.length; i++) {
-            if(input[i] == element) return i;
+            if(input[i].equals(element)) return i;
         }
         return -1;
     }
