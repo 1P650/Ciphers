@@ -2,8 +2,11 @@ package BlockCiphers;
 
 import Basic.HashFunction;
 import Basic.PRN_generator;
+import Basic.bitUtil;
+import HashFunctions.SHA2.SHA256;
 import HashFunctions.SHA2.SHA512;
-import RND_generators.Linear_Generator;
+import RND_generators.ISAAC;
+
 
 public class Aardvark implements Basic.Cipher {
     private byte[] K;
@@ -13,9 +16,16 @@ public class Aardvark implements Basic.Cipher {
         this.hashFunction = new SHA512();
         this.generator = new ISAAC();
     }
+    private Aardvark(HashFunction function, PRN_generator gen){
+        this.hashFunction = function;
+        this.generator = gen;
+    }
 
     public static Aardvark getInstance(){
         return new Aardvark();
+    }
+    public static Aardvark getInstance(HashFunction function, PRN_generator gen){
+        return new Aardvark(function,gen);
     }
 
     @Override
@@ -31,7 +41,7 @@ public class Aardvark implements Basic.Cipher {
         byte[] C1 = H(P);
         byte[] C2 = H(C1, K);
         byte[] C3 = S(C2, P.length);
-        byte[] C4 = xor(P,C3);
+        byte[] C4 = bitUtil.xor(P,C3);
         byte[] C = new byte[C4.length + C1.length];
         System.arraycopy(C1, 0, C,0,C1.length);
         System.arraycopy(C4, 0,C,C1.length,C4.length);
@@ -49,20 +59,16 @@ public class Aardvark implements Basic.Cipher {
         System.arraycopy(C, C1.length, C0, 0, C.length-len);
         byte[] C2 = H(C1, K);
         byte[] C3 = S(C2, C0.length);
-        byte[] P = xor(C0,C3);
+        byte[] P = bitUtil.xor(C0,C3);
         return P;
     }
-    private  byte[] xor(byte[] a, byte[] b){
-        for (int i = 0; i < a.length; i++) {
-            a[i]^=b[i];
-        }
-        return a;
-    }
+
 
     @Override
     public void reset() {
         this.setKey(new byte[0]);
-       
+        this.setHashFunction(new SHA256());
+        this.setGenerator(new ISAAC());
     }
 
     private  byte[] S(byte[] seed, int S_len){
