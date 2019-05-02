@@ -96,7 +96,6 @@ public  class bitUtil {
         }
 
         public static int byteArrayToInt(byte[] b) {
-
             int i = b[0] & 0xff;
             i = (i << 8) ^ (int) b[1] & 0xff;
             i = (i << 8) ^ (int) b[2] & 0xff;
@@ -104,6 +103,13 @@ public  class bitUtil {
 
             return i;
         }
+
+    public static byte[] xor(byte[] a, byte[] b){
+        for (int i = 0; i < a.length; i++) {
+            a[i]^=b[i];
+        }
+        return a;
+    }
 
 
 
@@ -196,7 +202,6 @@ public  class bitUtil {
         }
         System.out.println();
     }
-    
     public static void printBinary_byteArray(byte[] input){
         for (byte b:input) {
             System.out.print(Integer.toBinaryString(b));
@@ -204,6 +209,49 @@ public  class bitUtil {
         System.out.println();
     }
 
+    public static byte[][] splitTo4bytes(byte[] input) {
+        byte[][] retq = new byte[input.length >> 2][4];
+        for (int i = 0,j=0; i < input.length; i+=4,j++) {
+            if(i+4 > input.length) break;
+            System.arraycopy(input,i,retq[j],0,4);
+        }
+        return retq;
+    }
+
+    public static byte[][] splitTo8bytes(byte[] input) {
+        byte[][] retq = new byte[input.length >> 3][8];
+        for (int i = 0,j=0; i < input.length; i+=8,j++) {
+            if(i+8 > input.length) break;
+            System.arraycopy(input,i,retq[j],0,8);
+        }
+        return retq;
+    }
+
+    public static byte[][] splitTo16bytes(byte[] input) {
+        byte[][] retq = new byte[input.length >> 4][16];
+        for (int i = 0,j=0; i < input.length; i+=16,j++) {
+            if(i+16 > input.length) break;
+            System.arraycopy(input,i,retq[j],0,16);
+        }
+        return retq;
+    }
 
 
+    public static byte[] splitBy4bits(byte[] input) {
+        byte[] input_4bit = new byte[input.length<<1];
+        for (int i = 0,j=0; i < input.length; i++,j++) {
+            input_4bit[j] = (byte) ((input[i]>>4) & 0b1111);
+            input_4bit[j+1] = (byte) ((input[i]&0b1111));
+           j++;
+        }
+        return input_4bit;
+    }
+    public static byte[] concatBy4bit(byte[] input_4bit) {
+        byte[] input = new byte[input_4bit.length>>1];
+        for (int i = 0,j=0; i < input_4bit.length; i++,j++) {
+            input[j] = (byte)( (input_4bit[i] << 4) | input_4bit[i+1]);
+            i++;
+        }
+        return input;
+    }
 }
