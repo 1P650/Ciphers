@@ -10,8 +10,32 @@ public class GOST_89 implements Cipher {
     public final static byte CNT = 1;
     public final static byte CFB = 2;
     private static GOST_algorithm GOST;
-
     private byte MODE_SELECTED = 0;
+private GOST_89(){
+
+}
+private GOST_89(byte[] key, byte mode){
+        this.setKey(key);
+        this.setMode(mode);
+    }
+
+private GOST_89(byte[] key, byte[] iv, byte mode){
+        this.setKey(key);
+        this.setIV(iv);
+        this.setMode(mode);
+    }
+
+    public static GOST_89 getInstance(){
+    return new GOST_89();
+    }
+    public static GOST_89 getInstance(byte[] key, byte mode){
+        return new GOST_89(key,mode);
+    }
+
+    public static GOST_89 getInstance(byte[] key, byte[] iv, byte mode){
+    return new GOST_89(key,iv,mode);
+    }
+
 
     @Override
     public void setKey(byte[] key) {
@@ -296,7 +320,6 @@ public class GOST_89 implements Cipher {
             return gamma;
         }
     }
-
     private class GOST_exception extends RuntimeException {
         final static String IV_NULL = "Initialization Vector is not set! Set it with GOST_89.setIV(byte[] IV)";
         final static String IV_LEN = "IV length must be 64 bits (8 bytes)!";
@@ -318,6 +341,5 @@ public class GOST_89 implements Cipher {
 
 
 }
-
 
 
