@@ -9,7 +9,7 @@ import java.util.Arrays;
 
 public class GOST_89 implements Cipher {
     public final static byte ECB = 0;
-    public final static byte CNT = 1;
+    public final static byte CTM = 1;
     public final static byte CFB = 2;
     private static GOST_algorithm GOST;
 
@@ -238,6 +238,7 @@ public class GOST_89 implements Cipher {
 
 
 }
+
 
 
 
