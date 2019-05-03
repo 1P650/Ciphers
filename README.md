@@ -6,7 +6,7 @@ Just implementation of different ciphers/hash functions/others.
 ### Ciphers
 #### Block Ciphers
 * Aardvark
-* GOST28147-89 (ГОСТ28147-89) (only ECB mode)
+* GOST28147-89 (ГОСТ28147-89) (ECB and CNT modes)
 ***
 ### Hash Functions
 * SHA1
