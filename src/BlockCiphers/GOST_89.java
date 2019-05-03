@@ -121,8 +121,7 @@ private GOST_89(byte[] key, byte[] iv, byte mode){
 
         }
 
-        GOST_algorithm() {
-        }
+        GOST_algorithm() { }
 
 
         byte[] encryptInECB(byte[] input) {
