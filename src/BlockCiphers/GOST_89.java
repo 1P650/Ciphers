@@ -58,6 +58,7 @@ private GOST_89(byte[] key, byte[] iv, byte mode){
 
     @Override
     public byte[] encrypt(byte[] plain) {
+        if(plain.length==0) throw new GOST_exception(GOST_exception.DATA_NULL);
         switch (this.MODE_SELECTED) {
             case 2:
                 return GOST.encryptInCFB(plain);
@@ -71,6 +72,7 @@ private GOST_89(byte[] key, byte[] iv, byte mode){
 
     @Override
     public byte[] decrypt(byte[] ciph) {
+        if(ciph.length==0) throw new GOST_exception(GOST_exception.DATA_NULL);
         switch (this.MODE_SELECTED) {
             case 2:
                 return GOST.decryptInCFB(ciph);
@@ -324,6 +326,7 @@ private GOST_89(byte[] key, byte[] iv, byte mode){
         final static String IV_LEN = "IV length must be 64 bits (8 bytes)!";
         final static String DATA_LEN = "Input length must be multiple of 8 (64 bits)";
         final static String KEY_LEN = "Key length must be 256 bits (32 bytes)!";
+        final static String DATA_NULL = "Data length must be >0!";
 
 
         GOST_exception() {
