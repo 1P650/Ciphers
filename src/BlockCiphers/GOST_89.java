@@ -24,6 +24,10 @@ public class GOST_89 implements Cipher {
         GOST.IV = IV;
     }
 
+    public byte[] doMac(byte[] input){
+        return GOST.doMac(input);
+    }
+
     public void setMode(byte mode) {
         this.MODE_SELECTED = mode;
     }
@@ -80,6 +84,7 @@ public class GOST_89 implements Cipher {
         private byte[] IV = null;
 
         GOST_algorithm(byte[] K) {
+            if(K == null || K.length !=32) throw new GOST_exception(GOST_exception.KEY_LEN);
             byte[][] splitted = bitUtil.splitTo4bytes(K);
             for (int i = 0; i < 8; i++) {
                 System.arraycopy(splitted[i], 0, splittedKey[i], 0, 4);
@@ -118,6 +123,10 @@ public class GOST_89 implements Cipher {
             }
             return encrypted;
         }
+
+
+
+
         byte[] decryptInECB(byte[] input) {
             if (input.length % 8 != 0) throw new GOST_exception(GOST_exception.DATA_LEN);
             byte[] decrypted = new byte[input.length];
@@ -199,12 +208,50 @@ public class GOST_89 implements Cipher {
             return decrypted;
         }
 
-
-
-
-
         byte[] doMac(byte[] input) {
-            return null;
+            byte[] input_extended;
+            if(input.length%8!=0){
+               int len = input.length;
+               while (len %8!=0) len++;
+               input_extended = new byte[len];
+               System.arraycopy(input,0,input_extended,0,input.length);
+            }
+            else{
+                input_extended = input.clone();
+            }
+            byte[] MAC = new byte[8];
+            System.arraycopy(input_extended,0,MAC,0,8);
+            for(int i = 8; i < input_extended.length-8; i+=8){
+                MAC = MAC_encryptInECB16(MAC);
+                byte[] chunck = new byte[8];
+                System.arraycopy(input_extended,i,chunck,0,8);
+                bitUtil.xor(MAC,chunck);
+
+            }
+            return MAC;
+        }
+
+        private byte[] MAC_encryptInECB16(byte[] input) {
+            if (input.length % 8 != 0) throw new GOST_exception(GOST_exception.DATA_LEN);
+            byte[] encrypted = new byte[input.length];
+            for (int i = 0; i < input.length; i += 8) {
+                byte[] chunck = new byte[8];
+                System.arraycopy(input, i, chunck, 0, 8);
+                byte[] A = new byte[4];
+                byte[] B = new byte[4];
+                System.arraycopy(chunck, 0, B, 0, 4);
+                System.arraycopy(chunck, 4, A, 0, 4);
+                for (int j = 0; j < 16; j++) {
+                    byte[] temp = A;
+                    A = bitUtil.xor(B, f(A, splittedKey[j]));
+                    B = temp;
+                }
+                byte[] e_chuck = new byte[8];
+                System.arraycopy(A, 0, e_chuck, 0, 4);
+                System.arraycopy(B, 0, e_chuck, 4, 4);
+                System.arraycopy(e_chuck, 0, encrypted, i, 8);
+            }
+            return encrypted;
         }
 
         private byte[] f(byte[] A, byte[] Ki) {
