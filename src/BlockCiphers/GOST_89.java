@@ -4,12 +4,10 @@ import Basic.Cipher;
 import Basic.algorithmUtil;
 import Basic.bitUtil;
 
-import java.util.Arrays;
-
 
 public class GOST_89 implements Cipher {
     public final static byte ECB = 0;
-    public final static byte CTM = 1;
+    public final static byte CNT = 1;
     public final static byte CFB = 2;
     private static GOST_algorithm GOST;
 
@@ -36,7 +34,7 @@ public class GOST_89 implements Cipher {
             case 2:
                 return GOST.encryptInCFB(plain);
             case 1:
-                return GOST.encryptInGamming(plain);
+                return GOST.encryptInCNT(plain);
             default:
                 return GOST.encryptInECB(plain);
         }
@@ -49,7 +47,7 @@ public class GOST_89 implements Cipher {
             case 2:
                 return GOST.decryptInCFB(ciph);
             case 1:
-                return GOST.decryptInGamming(ciph);
+                return GOST.decryptInCNT(ciph);
             default:
                 return GOST.decryptInECB(ciph);
         }
@@ -144,30 +142,66 @@ public class GOST_89 implements Cipher {
             }
             return decrypted;
         }
-
-
-        byte[] encryptInGamming(byte[] input) {
+        byte[] encryptInCNT(byte[] input) {
+            if (this.IV == null) throw new GOST_exception(GOST_exception.IV_NULL);
+            byte[] gamma = generateGamma(this.IV, input.length);
+            return bitUtil.xor(input, gamma);
+        }
+        byte[] decryptInCNT(byte[] input) {
             if (this.IV == null) throw new GOST_exception(GOST_exception.IV_NULL);
             byte[] gamma = generateGamma(this.IV, input.length);
             return bitUtil.xor(input, gamma);
         }
 
-        byte[] decryptInGamming(byte[] input) {
-            if (this.IV == null) throw new GOST_exception(GOST_exception.IV_NULL);
-            byte[] gamma = generateGamma(this.IV, input.length);
-            return bitUtil.xor(input, gamma);
-        }
+
 
 
         byte[] encryptInCFB(byte[] input) {
             if (this.IV == null) throw new GOST_exception(GOST_exception.IV_NULL);
-            return null;
+            int len = input.length;
+            while (len%8!=0) len++;
+            byte[] input_extended = new byte[len];
+            byte[] encrypted = new byte[input.length];
+            byte[] encrypted_extended = new byte[len];
+            System.arraycopy(input,0,input_extended,0,input.length);
+            byte[] STATE = this.IV.clone();
+            for (int i = 0; i < input_extended.length; i+=8) {
+                STATE = encryptInECB(STATE);
+                byte[] chunck = new byte[8];
+                System.arraycopy(input_extended,i,chunck,0,8);
+                chunck = bitUtil.xor(chunck,STATE);
+                System.arraycopy(chunck,0,encrypted_extended,i,8);
+                STATE = chunck;
+
+            }
+
+            System.arraycopy(encrypted_extended,0,encrypted,0,encrypted.length);
+            return encrypted;
         }
 
         byte[] decryptInCFB(byte[] input) {
             if (this.IV == null) throw new GOST_exception(GOST_exception.IV_NULL);
-            return null;
+            int len = input.length;
+            while (len%8!=0) len++;
+            byte[] input_extended = new byte[len];
+            byte[] decrypted = new byte[input.length];
+            byte[] decrypted_extended = new byte[len];
+            System.arraycopy(input,0,input_extended,0,input.length);
+            byte[] STATE = this.IV.clone();
+            for (int i = 0; i < input.length; i+=8) {
+                STATE = encryptInECB(STATE);
+                byte[] chunck = new byte[8];
+                System.arraycopy(input_extended,i,chunck,0,8);
+                System.arraycopy(bitUtil.xor(chunck.clone(),STATE),0,decrypted_extended,i,8);
+                STATE = chunck;
+            }
+            System.arraycopy(decrypted_extended,0,decrypted,0,decrypted.length);
+            return decrypted;
         }
+
+
+
+
 
         byte[] doMac(byte[] input) {
             return null;
@@ -221,7 +255,6 @@ public class GOST_89 implements Cipher {
         final static String IV_LEN = "IV length must be 64 bits (8 bytes)!";
         final static String DATA_LEN = "Input length must be multiple of 8 (64 bits)";
         final static String KEY_LEN = "Key length must be 256 bits (32 bytes)!";
-        final static String MAC_DEC = "MAC can't be decrypted!";
 
 
         GOST_exception() {
@@ -238,7 +271,6 @@ public class GOST_89 implements Cipher {
 
 
 }
-
 
 
 
