@@ -104,13 +104,6 @@ public  class bitUtil {
             return i;
         }
 
-    public static byte[] xor(byte[] a, byte[] b){
-        for (int i = 0; i < a.length; i++) {
-            a[i]^=b[i];
-        }
-        return a;
-    }
-
 
 
 
@@ -162,7 +155,7 @@ public  class bitUtil {
 
 
 
-    public static byte[] shortToByteArray(int i) {
+    public static byte[] shortToByteArray(short i) {
         return new byte[]{
                 (byte) (i >> 8),
                 (byte)  i
@@ -197,6 +190,13 @@ public  class bitUtil {
     }
 
     public static void printHex_byteArray(byte[] input){
+        for (byte b:input) {
+            System.out.printf("%x",b);
+        }
+        System.out.println();
+    }
+
+    public static void printHex_byteArray(byte[] input,boolean padding){
         for (byte b:input) {
             System.out.printf("%x",b);
         }
@@ -254,4 +254,21 @@ public  class bitUtil {
         }
         return input;
     }
+
+    public static int extedTo8(int len){
+        while (len%8!=0) len++;
+        return len;
+    }
+
+    public static int extendToSize(int variable, int size){
+        if (variable%size==0) return variable;
+        return (variable - (variable%size) +size);
+    }
+    public static byte[] xor(byte[] a, byte[] b){
+        for (int i = 0; i < a.length; i++) {
+            a[i]^=b[i];
+        }
+        return a;
+    }
+
 }
