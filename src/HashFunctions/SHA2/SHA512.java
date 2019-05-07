@@ -1,12 +1,12 @@
 package HashFunctions.SHA2;
 
 import Basic.HashFunction;
-import Basic.bitUtil;
+import Utils.bitUtil;
 
 public class SHA512 implements HashFunction {
 
     protected static final int LENGTH = 64;
-    private final long [] K = new long[]{
+    private final long[] K = new long[]{
             0x428A2F98D728AE22L, 0x7137449123EF65CDL, 0xB5C0FBCFEC4D3B2FL, 0xE9B5DBA58189DBBCL, 0x3956C25BF348B538L,
             0x59F111F1B605D019L, 0x923F82A4AF194F9BL, 0xAB1C5ED5DA6D8118L, 0xD807AA98A3030242L, 0x12835B0145706FBEL,
             0x243185BE4EE4B28CL, 0x550C7DC3D5FFB4E2L, 0x72BE5D74F27B896FL, 0x80DEB1FE3B1696B1L, 0x9BDC06A725C71235L,
@@ -51,10 +51,10 @@ public class SHA512 implements HashFunction {
             byte i_num = 80;
 
             for (int j = 16; j < i_num; j++) {
-               s0 = (bitUtil.rotateR(words_64bit[j - 15], 1)) ^ (bitUtil.rotateR(words_64bit[j - 15], 8)) ^ (words_64bit[j - 15] >>> 7);
-               s1 = (bitUtil.rotateR(words_64bit[j - 2], 19)) ^ (bitUtil.rotateR(words_64bit[j - 2], 61)) ^ (words_64bit[j - 2] >>> 6);
+                s0 = (bitUtil.rotateR(words_64bit[j - 15], 1)) ^ (bitUtil.rotateR(words_64bit[j - 15], 8)) ^ (words_64bit[j - 15] >>> 7);
+                s1 = (bitUtil.rotateR(words_64bit[j - 2], 19)) ^ (bitUtil.rotateR(words_64bit[j - 2], 61)) ^ (words_64bit[j - 2] >>> 6);
 
-               words_64bit[j] = words_64bit[j - 16] + s0 + words_64bit[j - 7] + s1;
+                words_64bit[j] = words_64bit[j - 16] + s0 + words_64bit[j - 7] + s1;
             }
 
             long a = h0;
@@ -114,7 +114,7 @@ public class SHA512 implements HashFunction {
                 });
         this.reset();
         return hash;
-}
+    }
 
     @Override
     public void reset() {
@@ -134,14 +134,18 @@ public class SHA512 implements HashFunction {
     }
 
 
-    private byte[] padding_process(byte[] input){
+    private byte[] padding_process(byte[] input) {
         int l_orig = input.length;
-        int l = bitUtil.extendToSize(l_orig<<3,1024);
-        byte[] prepared = new byte[l>>3];
-        System.arraycopy(input,0,prepared,0,l_orig);
+        int l = l_orig << 3;
+        int k = 2;
+        while ((l + k) % 1024 != 896) k++;
+        l += k + 128;
+        byte[] prepared = new byte[l >> 3];
+        System.out.println(prepared.length);
+        System.arraycopy(input, 0, prepared, 0, l_orig);
         prepared[l_orig] = (byte) 0b10000000;
-        byte[] coping = bitUtil.longToByteArray(l_orig<<3);
-        System.arraycopy(coping,0,prepared,prepared.length - coping.length,coping.length);
+        byte[] coping = bitUtil.longToByteArray(l_orig << 3);
+        System.arraycopy(coping, 0, prepared, prepared.length - coping.length, coping.length);
         return prepared;
     }
 

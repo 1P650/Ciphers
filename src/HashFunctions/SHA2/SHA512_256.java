@@ -1,7 +1,7 @@
 package HashFunctions.SHA2;
 
 import Basic.HashFunction;
-import Basic.bitUtil;
+import Utils.bitUtil;
 
 public class SHA512_256 implements HashFunction {
 
@@ -138,7 +138,10 @@ public class SHA512_256 implements HashFunction {
 
         private byte[] padding_process(byte[] input){
             int l_orig = input.length;
-            int l = bitUtil.extendToSize(l_orig<<3,1024);
+            int l = l_orig << 3;
+            int k = 2;
+            while ((l + k) % 1024 !=896) k++;
+            l += k+128;
             byte[] prepared = new byte[l>>3];
             System.arraycopy(input,0,prepared,0,l_orig);
             prepared[l_orig] = (byte) 0b10000000;
