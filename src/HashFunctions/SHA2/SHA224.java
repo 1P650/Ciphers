@@ -129,7 +129,7 @@ public class SHA224 implements HashFunction {
          int l = l_orig << 3;
          int k = 2;
          while ((l + k) % 512 != 384) k++;
-         l += k + 128;
+         l += k + 64;
         byte[] prepared = new byte[l>>3];
         System.arraycopy(input,0,prepared,0,l_orig);
         prepared[l_orig] = (byte) 0b10000000;
