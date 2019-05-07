@@ -2,7 +2,7 @@ package BlockCiphers;
 
 import Basic.HashFunction;
 import Basic.PRN_generator;
-import Basic.bitUtil;
+import Utils.bitUtil;
 import HashFunctions.SHA2.SHA256;
 import HashFunctions.SHA2.SHA512;
 import RND_generators.ISAAC;

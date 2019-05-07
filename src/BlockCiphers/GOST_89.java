@@ -1,8 +1,8 @@
 package BlockCiphers;
 
 import Basic.Cipher;
-import Basic.algorithmUtil;
-import Basic.bitUtil;
+import Utils.algorithmUtil;
+import Utils.bitUtil;
 
 
 public class GOST_89 implements Cipher {
