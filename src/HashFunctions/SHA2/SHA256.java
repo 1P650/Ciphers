@@ -129,7 +129,7 @@ public class SHA256 implements HashFunction {
         int l_orig = input.length;
         int l = l_orig << 3;
         int k = 2;
-        while ((l + k) % 512 != 384) k++;
+        while ((l + k) % 512 != 448) k++;
         l += k + 64;
         byte[] prepared = new byte[l>>3];
         System.arraycopy(input,0,prepared,0,l_orig);
