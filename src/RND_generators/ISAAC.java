@@ -1,7 +1,7 @@
 package RND_generators;
 
 import Basic.PRN_generator;
-import Basic.bitUtil;
+import Utils.bitUtil;
 
 
 public class ISAAC implements PRN_generator {
@@ -28,7 +28,15 @@ public class ISAAC implements PRN_generator {
             b = out[i];
         }
         byte[] copy = bitUtil.intArrayToByteArray(out);
+        byte[] copy_cl = copy.clone();
         byte[] retq = new byte[in.length];
+        while (retq.length > copy.length){
+            byte[] copyClone = this.nextBytes(copy_cl);
+            byte[] copyAll = new byte[copyClone.length + copy.length];
+            System.arraycopy(copy,0,copyAll,0,copy.length);
+            System.arraycopy(copyClone,0,copyAll,copy.length,copyClone.length);
+            copy = copyAll;
+        }
         System.arraycopy(copy,0,retq,0,retq.length);
         return retq;
     }
@@ -48,6 +56,10 @@ public class ISAAC implements PRN_generator {
 
     private static byte[] extend(byte[] bytes) {
         byte[] repeat = new byte[1024];
+        if(bytes.length > 1024){
+            System.arraycopy(bytes,0,repeat,0,1024);
+            return repeat;
+        }
         for (int i = 0; i < repeat.length; i += bytes.length) {
             System.arraycopy(bytes, 0, repeat, (i + bytes.length > repeat.length ? repeat.length - i : i), bytes.length);
         }
@@ -81,7 +93,7 @@ public class ISAAC implements PRN_generator {
             s[i + 7] ^= s[i] >>> 9;
             s[i + 2] += s[i + 7];
             s[i] += s[i + 1];
-  
+
         }
 
         return s;
