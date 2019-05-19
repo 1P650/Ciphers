@@ -165,6 +165,7 @@ public class TEA implements Cipher {
         }
 
         byte[] decryptInECB(byte[] input) {
+            if (input.length % 8 != 0) throw new TEA_exception(TEA_exception.DATA_LEN);
             int[] plain_32 = BitUtil.ByteArrays.byteArrayToIntArray(input);
 
             for (int k = 0; k < plain_32.length - 1; k += 2) {
