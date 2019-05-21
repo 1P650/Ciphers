@@ -4,7 +4,7 @@ import Ciphers.Basic.HashFunction;
 import Ciphers.Utils.BitUtil;
 
 public class SHA1 implements HashFunction {
-    private int LENGTH = 40;
+    private int LENGTH = 20;
     private int h0 = 0x67452301;
     private int h1 = 0xEFCDAB89;
     private int h2 = 0x98BADCFE;
