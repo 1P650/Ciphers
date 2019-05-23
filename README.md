@@ -6,7 +6,7 @@ Just implementation of different ciphers/hash functions/others.
 ### Ciphers
 #### Block Ciphers
 * Aardvark
-* GOST28147-89 (ГОСТ28147-89) (ECB mode, CNT (Gamma) mode, CFB (Gamma feedback) mode, MAC (Imitovstavka)) 
+* GOST28147-89 (ГОСТ28147-89) (ECB mode,CFB mode, CTR mode, MAC (Imitovstavka)) 
 * TEA (Tiny Encryption Algorithm) (ECB mode, CBC mode, CFB mode, OFB mode, CTR mode)
 ***
 ### Hash Functions
