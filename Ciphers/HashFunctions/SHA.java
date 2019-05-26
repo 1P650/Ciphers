@@ -5,17 +5,6 @@ import Ciphers.Utils.BitUtil;
 
 public abstract class SHA extends HashFunction {
     protected byte[] padding_process(byte[] input) {
-      /* int l_orig = input.length;
-       int l = l_orig << 3;
-       int k = 2;
-       while ((l + k) % 512 != 448) k++;
-       l += k + 64;
-       byte[] prepared = new byte[l >> 3];
-       System.arraycopy(input, 0, prepared, 0, l_orig);
-       prepared[l_orig] = (byte) 0b10000000;
-       final byte[] coping = BitUtil.ByteArrays.intToByteArray(l_orig << 3);
-       System.arraycopy(coping, 0, prepared, prepared.length - coping.length, coping.length);
-       return prepared;*/
         int l_orig = input.length;
         int l = l_orig << 3;
         int k = 2;
