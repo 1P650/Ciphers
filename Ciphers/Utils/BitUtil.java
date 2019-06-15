@@ -1,6 +1,8 @@
 package Ciphers.Utils;
 
 
+import java.math.BigInteger;
+
 public final class BitUtil {
 
     private static final int BYTE_BITSIZE = 8;
@@ -378,7 +380,7 @@ public final class BitUtil {
     }
 
     public static class Operation {
-        public static byte[] Xor(byte[] c, byte[] b) {
+        public static byte[] XOR(byte[] c, byte[] b) {
             byte[] a = c.clone();
             for (int i = 0; i < a.length; i++) {
                 a[i] ^= b[i];
@@ -386,16 +388,77 @@ public final class BitUtil {
             return a;
         }
 
-       public static int mInver(int a, int m)
-        {
-            a = (a%m);
-            for (int x=1; x<m; x++)
-                if ((a*x) % m == 1) return (int) (x %m) & 0xffff;
-            return 0;
+        public static byte[] OR(byte[] c, byte[] b) {
+            byte[] a = c.clone();
+            for (int i = 0; i < a.length; i++) {
+                a[i] |= b[i];
+            }
+            return a;
         }
 
-       public static int addInver(int x, int n){
-            return (int) ((n-x) % 65536);
+
+        public static byte[] AND(byte[] c, byte[] b) {
+            byte[] a = c.clone();
+            for (int i = 0; i < a.length; i++) {
+                a[i] &= b[i];
+            }
+            return a;
+        }
+
+
+        public static byte[] NOT(byte[] c) {
+            byte[] a = c.clone();
+            for (int i = 0; i < a.length; i++) {
+                a[i] = (byte) ~a[i];
+            }
+            return a;
+        }
+
+        public static byte[] NAND(byte[] c, byte[] b) {
+            return NOT(AND(c, b));
+        }
+
+        public static byte[] NOR(byte[] c, byte[] b) {
+            return NOT(OR(c, b));
+        }
+
+        public static byte[] XNOR(byte[] c, byte[] b) {
+            return NOT(XOR(c, b));
+        }
+
+        public static int MultiplicativeInverse(int a, int m) {
+            a = a % m;
+            for (int x = 1; x < m; x++)
+                if ((a * x) % m == 1)
+                    return x;
+        return -1;
+    }
+
+
+
+
+        public static int AdditiveInverse(int x, int n) {
+            return ((n - x) % n);
+        }
+
+        public static int Multiply_16(int a, int b) {
+            a &= 0xFFFF;
+            b &= 0xFFFF;
+            int p;
+            if (a != 0) {
+                if (b != 0) {
+                    p = a * b;
+                    b = p & 0xFFFF;
+                    a = p >>> 16;
+                    return (short)(b - a + (b < a ? 1 : 0));
+                } else
+                    return (short)(1 - a);
+            } else
+                return (short)(1 - b);
+        }
+
+        public static int Add_16(int a, int b) {
+            return (a + b) & 0xFFFF;
         }
     }
 
