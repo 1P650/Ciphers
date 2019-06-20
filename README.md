@@ -23,3 +23,4 @@ Just implementation of different ciphers/hash functions/others.
 ### Utils
 * BitUtil (bit rotation, type conversion, hex&binary print,more)
 * AlgorithmUtil (index of element, reverse array, reverse matrix)
+* MathUtil (modulo operations, more will be soon)
