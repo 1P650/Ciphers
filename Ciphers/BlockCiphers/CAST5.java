@@ -27,6 +27,173 @@ class CAST5 extends BlockCipher {
     }
 
     private class CAST5_algorithm extends BlockCipher.BlockCipherAlgorithm {
+
+        private int ROUNDS = 16;
+        private int[] KEYS = new int[32];
+
+        CAST5_algorithm() {
+            super();
+        }
+
+        CAST5_algorithm(byte[] key) {
+            super();
+            if (key.length <= 10) this.ROUNDS = 12;
+            generateKeys(key);
+        }
+
+
+        @Override
+        byte[] encryptInECB(byte[] input) {
+            if (input.length % blocksize != 0) throw new BlockCipherException(BlockCipherException.DATA_LEN, blocksize);
+            int[] input_32 = BitUtil.ByteArrays.byteArrayToIntArray(input);
+            int L = input_32[0];
+            int R = input_32[1];
+            for (int i = 0; i < ROUNDS; i++) {
+                int temp = R;
+                switch (i % 3) {
+                    case 0:
+                        R = L ^ F1(temp, KEYS[i], KEYS[16+i]);
+                        L = temp;
+                        break;
+                    case 1:
+                        R = L ^ F2(temp, KEYS[i], KEYS[16+i]);
+                        L = temp;
+                        break;
+                    case 2:
+                        R = L ^ F3(temp, KEYS[i], KEYS[16+i]);
+                        L = temp;
+                        break;
+                }
+            }
+            input_32[0] = R;
+            input_32[1] = L;
+            return BitUtil.ByteArrays.intArrayToByteArray(input_32);
+        }
+
+        @Override
+        byte[] decryptInECB(byte[] input) {
+            if (input.length % blocksize != 0) throw new BlockCipherException(BlockCipherException.DATA_LEN, blocksize);
+            int[] input_32 = BitUtil.ByteArrays.byteArrayToIntArray(input);
+            int L = input_32[0];
+            int R = input_32[1];
+            for (int i = ROUNDS-1; i >=0; i--) {
+                int temp = R;
+                switch (i % 3) {
+                    case 0:
+                        R = L ^ F1(temp, KEYS[i], KEYS[16+i]);
+                        L = temp;
+                        break;
+                    case 1:
+                        R = L ^ F2(temp, KEYS[i], KEYS[16+i]);
+                        L = temp;
+                        break;
+                    case 2:
+                        R = L ^ F3(temp, KEYS[i], KEYS[16+i]);
+                        L = temp;
+                        break;
+                }
+
+
+            }
+            input_32[0] = R;
+            input_32[1] = L;
+            return BitUtil.ByteArrays.intArrayToByteArray(input_32);
+        }
+
+
+        private void generateKeys(byte[] key) {
+
+            byte[] key_USED;
+            if (key.length < 16) {
+                byte[] key_expanded = new byte[16];
+                System.arraycopy(key, 0, key_expanded, 0, key.length);
+                key_USED = key_expanded;
+            } else {
+                key_USED = key;
+            }
+            for (int j = 0; j < 32; j += 16) {
+                int i = j;
+                int[] key_32 = BitUtil.ByteArrays.byteArrayToIntArray(key_USED);
+
+                int Z03 = key_32[0] ^ S5[key_USED[13] & 0xFF] ^ S6[key_USED[15] & 0xFF] ^ S7[key_USED[12] & 0xFF] ^ S8[key_USED[14] & 0xFF] ^ S7[key_USED[8] & 0xFF];
+                int Z47 = key_32[2] ^ S5[(Z03 >>> 24) & 0xFF] ^ S6[(Z03 >>> 8) & 0xFF] ^ S7[(Z03 >>> 16) & 0xFF] ^ S8[Z03 & 0xFF] ^ S8[key_USED[10] & 0xFF];
+                int Z8B = key_32[3] ^ S5[Z47 & 0xFF] ^ S6[(Z47 >>> 8) & 0xFF] ^ S7[(Z47 >>> 16) & 0xFF] ^ S8[(Z47 >>> 24) & 0xFF] ^ S5[key_USED[9] & 0xFF];
+                int ZCF = key_32[1] ^ S5[(Z8B >>> 8) & 0xFF] ^ S6[(Z8B >>> 16) & 0xFF] ^ S7[Z8B & 0xFF] ^ S8[(Z8B >>> 24) & 0xFF] ^ S6[key_USED[11] & 0xFF];
+
+                KEYS[i++] = S5[(Z8B >>> 24 & 0xFF)] ^ S6[(Z8B >>> 16) & 0xFF] ^ S7[Z47 & 0xFF] ^ S8[(Z47 >>> 8) & 0xFF] ^ S5[(Z03 >>> 8) & 0xFF];
+                KEYS[i++] = S5[(Z8B >>> 8) & 0xFF] ^ S6[Z8B & 0xFF] ^ S7[(Z47 >>> 16) & 0xFF] ^ S8[(Z47 >>> 24) & 0xFF] ^ S6[(Z47 >>> 8) & 0xFF];
+                KEYS[i++] = S5[(ZCF >>> 24) & 0xFF] ^ S6[(ZCF >>> 16) & 0xFF] ^ S7[(Z03) & 0xFF] ^ S8[(Z03 >>> 8) & 0xFF] ^ S7[(Z8B >>> 16) & 0xFF];
+                KEYS[i++] = S5[(ZCF >>> 8) & 0xFF] ^ S6[(ZCF) & 0xFF] ^ S7[(Z03 >>> 16) & 0xFF] ^ S8[(Z03 >>> 24) & 0xFF] ^ S8[(ZCF >>> 24) & 0xFF];
+
+                key_32[0] = Z8B ^ S5[(Z47 >>> 16) & 0xFF] ^ S6[Z47 & 0xFF] ^ S7[(Z47 >>> 24) & 0xFF] ^ S8[(Z47 >>> 8) & 0xFF] ^ S7[(Z03 >>> 24) & 0xFF];
+                key_32[1] = Z03 ^ S5[(key_32[0] >>> 24) & 0xFF] ^ S6[(key_32[0] >>> 8) & 0xFF] ^ S7[(key_32[0] >>> 16) & 0xFF] ^ S8[(key_32[0]) & 0xFF] ^ S8[(Z03 >>> 8) & 0xFF];
+                key_32[2] = Z47 ^ S5[(key_32[1]) & 0xFF] ^ S6[(key_32[1] >>> 8) & 0xFF] ^ S7[(key_32[1] >>> 16) & 0xFF] ^ S8[(key_32[1] >> 24) & 0xFF] ^ S5[(Z03 >>> 16) & 0xFF];
+                key_32[3] = ZCF ^ S5[(key_32[2] >>> 8) & 0xFF] ^ S6[(key_32[2] >>> 16) & 0xFF] ^ S7[(key_32[2]) & 0xFF] ^ S8[(key_32[2] >>> 24) & 0xFF] ^ S6[(Z03) & 0xFF];
+
+                key_USED = BitUtil.ByteArrays.intArrayToByteArray(key_32);
+
+                KEYS[i++] = S5[(key_32[0]) & 0xFF] ^ S6[(key_32[0] >>> 8) & 0xFF] ^ S7[(key_32[3] >>> 24) & 0xFF] ^ S8[(key_32[3] >>> 16) & 0xFF] ^ S5[(key_32[2] >>> 24) & 0xFF];
+                KEYS[i++] = S5[(key_32[0] >>> 16) & 0xFF] ^ S6[(key_32[0] >>> 24) & 0xFF] ^ S7[(key_32[3] >>> 8) & 0xFF] ^ S8[(key_32[3]) & 0xFF] ^ S6[(key_32[3] >>> 16) & 0xFF];
+                KEYS[i++] = S5[(key_32[1]) & 0xFF] ^ S6[(key_32[1] >>> 8) & 0xFF] ^ S7[(key_32[2] >>> 24) & 0xFF] ^ S8[(key_32[2] >>> 16) & 0xFF] ^ S7[(key_32[0]) & 0xFF];
+                KEYS[i++] = S5[(key_32[1] >>> 16) & 0xFF] ^ S6[(key_32[1] >>> 24) & 0xFF] ^ S7[(key_32[2] >>> 8) & 0xFF] ^ S8[(key_32[2]) & 0xFF] ^ S8[(key_32[1]) & 0xFF];
+
+                Z03 = key_32[0] ^ S5[key_USED[13] & 0xFF] ^ S6[key_USED[15] & 0xFF] ^ S7[key_USED[12] & 0xFF] ^ S8[key_USED[14] & 0xFF] ^ S7[key_USED[8] & 0xFF];
+                Z47 = key_32[2] ^ S5[(Z03 >>> 24) & 0xFF] ^ S6[(Z03 >>> 8) & 0xFF] ^ S7[(Z03 >>> 16) & 0xFF] ^ S8[Z03 & 0xFF] ^ S8[key_USED[10] & 0xFF];
+                Z8B = key_32[3] ^ S5[Z47 & 0xFF] ^ S6[(Z47 >>> 8) & 0xFF] ^ S7[(Z47 >>> 16) & 0xFF] ^ S8[(Z47 >>> 24) & 0xFF] ^ S5[key_USED[9] & 0xFF];
+                ZCF = key_32[1] ^ S5[(Z8B >>> 8) & 0xFF] ^ S6[(Z8B >>> 16) & 0xFF] ^ S7[Z8B & 0xFF] ^ S8[(Z8B >>> 24) & 0xFF] ^ S6[key_USED[11] & 0xFF];
+
+                KEYS[i++] = S5[(Z03) & 0xFF] ^ S6[(Z03 >>> 8) & 0xFF] ^ S7[(ZCF >>> 24) & 0xFF] ^ S8[(ZCF >>> 16) & 0xFF] ^ S5[(Z8B >>> 16) & 0xFF];
+                KEYS[i++] = S5[(Z03 >>> 16) & 0xFF] ^ S6[(Z03 >>> 24) & 0xFF] ^ S7[(ZCF >>> 8) & 0xFF] ^ S8[(ZCF) & 0xFF] ^ S6[(ZCF >>> 24) & 0xFF];
+                KEYS[i++] = S5[(Z47) & 0xFF] ^ S6[(Z47 >>> 8) & 0xFF] ^ S7[(Z8B >>> 24) & 0xFF] ^ S8[(Z8B >>> 16) & 0xFF] ^ S7[(Z03 >>> 8) & 0xFF];
+                KEYS[i++] = S5[(Z47 >>> 16) & 0xFF] ^ S6[(Z47 >>> 24) & 0xFF] ^ S7[(Z8B >>> 8) & 0xFF] ^ S8[(Z8B) & 0xFF] ^ S8[(Z47 >>> 8) & 0xFF];
+
+
+                key_32[0] = Z8B ^ S5[(Z47 >>> 16) & 0xFF] ^ S6[(Z47) & 0xFF] ^ S7[(Z47 >>> 24) & 0xFF] ^ S8[(Z47 >>> 8) & 0xFF] ^ S7[(Z03 >>> 24) & 0xFF];
+                key_32[1] = Z03 ^ S5[(key_32[0] >>> 24) & 0xFF] ^ S6[(key_32[0] >>> 8) & 0xFF] ^ S7[(key_32[0] >>> 16) & 0xFF] ^ S8[(key_32[0]) & 0xFF] ^ S8[(Z03 >>> 8) & 0xFF];
+                key_32[2] = Z47 ^ S5[(key_32[1]) & 0xFF] ^ S6[(key_32[1] >>> 8) & 0xFF] ^ S7[(key_32[1] >>> 16) & 0xFF] ^ S8[(key_32[1] >> 24) & 0xFF] ^ S5[(Z03 >>> 16) & 0xFF];
+                key_32[3] = ZCF ^ S5[(key_32[2] >>> 8) & 0xFF] ^ S6[(key_32[2] >>> 16) & 0xFF] ^ S7[(key_32[2]) & 0xFF] ^ S8[(key_32[2] >>> 24) & 0xFF] ^ S6[(Z03) & 0xFF];
+
+                key_USED = BitUtil.ByteArrays.intArrayToByteArray(key_32);
+
+                KEYS[i++] = S5[(key_32[2] >>> 24) & 0xFF] ^ S6[(key_32[2] >>> 16) & 0xFF] ^ S7[(key_32[1]) & 0xFF] ^ S8[(key_32[1] >>> 8) & 0xFF] ^ S5[(key_32[0]) & 0xFF];
+                KEYS[i++] = S5[(key_32[2] >>> 8) & 0xFF] ^ S6[(key_32[2]) & 0xFF] ^ S7[(key_32[1] >>> 16) & 0xFF] ^ S8[(key_32[1] >>> 24) & 0xFF] ^ S6[key_32[1] & 0xFF];
+                KEYS[i++] = S5[(key_32[3] >>> 24) & 0xFF] ^ S6[(key_32[3] >>> 16) & 0xFF] ^ S7[key_32[0] & 0xFF] ^ S8[(key_32[0] >>> 8) & 0xFF] ^ S7[(key_32[2] >>> 24) & 0xFF];
+                KEYS[i++] = S5[(key_32[3] >>> 8) & 0xFF] ^ S6[(key_32[3]) & 0xFF] ^ S7[(key_32[0] >>> 16) & 0xFF] ^ S8[(key_32[0] >>> 24) & 0xFF] ^ S8[(key_32[3] >>> 16) & 0xFF];
+
+            }
+        }
+
+        private int F1(int R, int Km, int Kr) {
+            int I = (BitUtil.Rotation.rotateL((MathUtil.Operation.Add_32(Km, R)), Kr));
+            byte[] I_bytes = BitUtil.ByteArrays.intToByteArray(I);
+            byte I_a = I_bytes[0];
+            byte I_b = I_bytes[1];
+            byte I_c = I_bytes[2];
+            byte I_d = I_bytes[3];
+            return MathUtil.Operation.Add_32(S4[I_d & 0xFF], MathUtil.Operation.Sub_32((S1[I_a & 0xFF] ^ S2[I_b & 0xFF]), (S3[I_c & 0xFF])));
+        }
+
+        private int F2(int R, int Km, int Kr) {
+            int I = (BitUtil.Rotation.rotateL((Km ^ R), Kr));
+            byte[] I_bytes = BitUtil.ByteArrays.intToByteArray(I);
+            byte I_a = I_bytes[0];
+            byte I_b = I_bytes[1];
+            byte I_c = I_bytes[2];
+            byte I_d = I_bytes[3];
+            return (S4[I_d & 0xFF]) ^ (MathUtil.Operation.Add_32(MathUtil.Operation.Sub_32(S1[I_a & 0xFF], S2[I_b & 0xFF]), S3[I_c & 0xFF]));
+        }
+
+        private int F3(int R, int Km, int Kr) {
+            int I = (BitUtil.Rotation.rotateL((MathUtil.Operation.Sub_32(Km, R)), Kr));
+            byte[] I_bytes = BitUtil.ByteArrays.intToByteArray(I);
+            byte I_a = I_bytes[0];
+            byte I_b = I_bytes[1];
+            byte I_c = I_bytes[2];
+            byte I_d = I_bytes[3];
+            return MathUtil.Operation.Sub_32((S3[I_c & 0xFF]) ^ MathUtil.Operation.Add_32(S1[I_a & 0xFF], S2[I_b & 0xFF]), S4[I_d & 0xFF]);
+        }
+
+
         //S-boxes
         private final int[] S1 = new int[]{
                 0x30FB40D4, 0x9FA0FF0B, 0x6BECCD2F, 0x3F258C7A, 0x1E213F2F, 0x9C004DD3, 0x6003E540, 0xCF9FC949,
@@ -304,169 +471,5 @@ class CAST5 extends BlockCipher {
                 0x04F19130, 0xBA6E4EC0, 0x99265164, 0x1EE7230D, 0x50B2AD80, 0xEAEE6801, 0x8DB2A283, 0xEA8BF59E
         };
 
-        private int ROUNDS = 16;
-        private int[] KEYS = new int[32];
-
-        CAST5_algorithm() {
-            super();
-        }
-
-        CAST5_algorithm(byte[] key) {
-            super();
-            if (key.length <= 10) this.ROUNDS = 12;
-            generateKeys(key);
-        }
-
-
-        @Override
-        byte[] encryptInECB(byte[] input) {
-            if (input.length % blocksize != 0) throw new BlockCipherException(BlockCipherException.DATA_LEN, blocksize);
-            int[] input_32 = BitUtil.ByteArrays.byteArrayToIntArray(input);
-            int L = input_32[0];
-            int R = input_32[1];
-            for (int i = 0; i < ROUNDS; i++) {
-                int temp = R;
-                switch (i % 3) {
-                    case 0:
-                        R = L ^ F1(temp, KEYS[i], KEYS[16+i]);
-                        L = temp;
-                        break;
-                    case 1:
-                        R = L ^ F2(temp, KEYS[i], KEYS[16+i]);
-                        L = temp;
-                        break;
-                    case 2:
-                        R = L ^ F3(temp, KEYS[i], KEYS[16+i]);
-                        L = temp;
-                        break;
-                }
-            }
-            input_32[0] = R;
-            input_32[1] = L;
-            return BitUtil.ByteArrays.intArrayToByteArray(input_32);
-        }
-
-        @Override
-        byte[] decryptInECB(byte[] input) {
-            if (input.length % blocksize != 0) throw new BlockCipherException(BlockCipherException.DATA_LEN, blocksize);
-            int[] input_32 = BitUtil.ByteArrays.byteArrayToIntArray(input);
-            int L = input_32[0];
-            int R = input_32[1];
-            for (int i = ROUNDS-1; i >=0; i--) {
-                int temp = R;
-                switch (i % 3) {
-                    case 0:
-                        R = L ^ F1(temp, KEYS[i], KEYS[16+i]);
-                        L = temp;
-                        break;
-                    case 1:
-                        R = L ^ F2(temp, KEYS[i], KEYS[16+i]);
-                        L = temp;
-                        break;
-                    case 2:
-                        R = L ^ F3(temp, KEYS[i], KEYS[16+i]);
-                        L = temp;
-                        break;
-                }
-
-
-            }
-            input_32[0] = R;
-            input_32[1] = L;
-            return BitUtil.ByteArrays.intArrayToByteArray(input_32);
-        }
-
-
-        private void generateKeys(byte[] key) {
-
-            byte[] key_USED;
-            if (key.length < 16) {
-                byte[] key_expanded = new byte[16];
-                System.arraycopy(key, 0, key_expanded, 0, key.length);
-                key_USED = key_expanded;
-            } else {
-                key_USED = key;
-            }
-            for (int j = 0; j < 32; j += 16) {
-                int i = j;
-                int[] key_32 = BitUtil.ByteArrays.byteArrayToIntArray(key_USED);
-
-                int Z03 = key_32[0] ^ S5[key_USED[13] & 0xFF] ^ S6[key_USED[15] & 0xFF] ^ S7[key_USED[12] & 0xFF] ^ S8[key_USED[14] & 0xFF] ^ S7[key_USED[8] & 0xFF];
-                int Z47 = key_32[2] ^ S5[(Z03 >>> 24) & 0xFF] ^ S6[(Z03 >>> 8) & 0xFF] ^ S7[(Z03 >>> 16) & 0xFF] ^ S8[Z03 & 0xFF] ^ S8[key_USED[10] & 0xFF];
-                int Z8B = key_32[3] ^ S5[Z47 & 0xFF] ^ S6[(Z47 >>> 8) & 0xFF] ^ S7[(Z47 >>> 16) & 0xFF] ^ S8[(Z47 >>> 24) & 0xFF] ^ S5[key_USED[9] & 0xFF];
-                int ZCF = key_32[1] ^ S5[(Z8B >>> 8) & 0xFF] ^ S6[(Z8B >>> 16) & 0xFF] ^ S7[Z8B & 0xFF] ^ S8[(Z8B >>> 24) & 0xFF] ^ S6[key_USED[11] & 0xFF];
-
-                KEYS[i++] = S5[(Z8B >>> 24 & 0xFF)] ^ S6[(Z8B >>> 16) & 0xFF] ^ S7[Z47 & 0xFF] ^ S8[(Z47 >>> 8) & 0xFF] ^ S5[(Z03 >>> 8) & 0xFF];
-                KEYS[i++] = S5[(Z8B >>> 8) & 0xFF] ^ S6[Z8B & 0xFF] ^ S7[(Z47 >>> 16) & 0xFF] ^ S8[(Z47 >>> 24) & 0xFF] ^ S6[(Z47 >>> 8) & 0xFF];
-                KEYS[i++] = S5[(ZCF >>> 24) & 0xFF] ^ S6[(ZCF >>> 16) & 0xFF] ^ S7[(Z03) & 0xFF] ^ S8[(Z03 >>> 8) & 0xFF] ^ S7[(Z8B >>> 16) & 0xFF];
-                KEYS[i++] = S5[(ZCF >>> 8) & 0xFF] ^ S6[(ZCF) & 0xFF] ^ S7[(Z03 >>> 16) & 0xFF] ^ S8[(Z03 >>> 24) & 0xFF] ^ S8[(ZCF >>> 24) & 0xFF];
-
-                key_32[0] = Z8B ^ S5[(Z47 >>> 16) & 0xFF] ^ S6[Z47 & 0xFF] ^ S7[(Z47 >>> 24) & 0xFF] ^ S8[(Z47 >>> 8) & 0xFF] ^ S7[(Z03 >>> 24) & 0xFF];
-                key_32[1] = Z03 ^ S5[(key_32[0] >>> 24) & 0xFF] ^ S6[(key_32[0] >>> 8) & 0xFF] ^ S7[(key_32[0] >>> 16) & 0xFF] ^ S8[(key_32[0]) & 0xFF] ^ S8[(Z03 >>> 8) & 0xFF];
-                key_32[2] = Z47 ^ S5[(key_32[1]) & 0xFF] ^ S6[(key_32[1] >>> 8) & 0xFF] ^ S7[(key_32[1] >>> 16) & 0xFF] ^ S8[(key_32[1] >> 24) & 0xFF] ^ S5[(Z03 >>> 16) & 0xFF];
-                key_32[3] = ZCF ^ S5[(key_32[2] >>> 8) & 0xFF] ^ S6[(key_32[2] >>> 16) & 0xFF] ^ S7[(key_32[2]) & 0xFF] ^ S8[(key_32[2] >>> 24) & 0xFF] ^ S6[(Z03) & 0xFF];
-
-                key_USED = BitUtil.ByteArrays.intArrayToByteArray(key_32);
-
-                KEYS[i++] = S5[(key_32[0]) & 0xFF] ^ S6[(key_32[0] >>> 8) & 0xFF] ^ S7[(key_32[3] >>> 24) & 0xFF] ^ S8[(key_32[3] >>> 16) & 0xFF] ^ S5[(key_32[2] >>> 24) & 0xFF];
-                KEYS[i++] = S5[(key_32[0] >>> 16) & 0xFF] ^ S6[(key_32[0] >>> 24) & 0xFF] ^ S7[(key_32[3] >>> 8) & 0xFF] ^ S8[(key_32[3]) & 0xFF] ^ S6[(key_32[3] >>> 16) & 0xFF];
-                KEYS[i++] = S5[(key_32[1]) & 0xFF] ^ S6[(key_32[1] >>> 8) & 0xFF] ^ S7[(key_32[2] >>> 24) & 0xFF] ^ S8[(key_32[2] >>> 16) & 0xFF] ^ S7[(key_32[0]) & 0xFF];
-                KEYS[i++] = S5[(key_32[1] >>> 16) & 0xFF] ^ S6[(key_32[1] >>> 24) & 0xFF] ^ S7[(key_32[2] >>> 8) & 0xFF] ^ S8[(key_32[2]) & 0xFF] ^ S8[(key_32[1]) & 0xFF];
-
-                Z03 = key_32[0] ^ S5[key_USED[13] & 0xFF] ^ S6[key_USED[15] & 0xFF] ^ S7[key_USED[12] & 0xFF] ^ S8[key_USED[14] & 0xFF] ^ S7[key_USED[8] & 0xFF];
-                Z47 = key_32[2] ^ S5[(Z03 >>> 24) & 0xFF] ^ S6[(Z03 >>> 8) & 0xFF] ^ S7[(Z03 >>> 16) & 0xFF] ^ S8[Z03 & 0xFF] ^ S8[key_USED[10] & 0xFF];
-                Z8B = key_32[3] ^ S5[Z47 & 0xFF] ^ S6[(Z47 >>> 8) & 0xFF] ^ S7[(Z47 >>> 16) & 0xFF] ^ S8[(Z47 >>> 24) & 0xFF] ^ S5[key_USED[9] & 0xFF];
-                ZCF = key_32[1] ^ S5[(Z8B >>> 8) & 0xFF] ^ S6[(Z8B >>> 16) & 0xFF] ^ S7[Z8B & 0xFF] ^ S8[(Z8B >>> 24) & 0xFF] ^ S6[key_USED[11] & 0xFF];
-
-                KEYS[i++] = S5[(Z03) & 0xFF] ^ S6[(Z03 >>> 8) & 0xFF] ^ S7[(ZCF >>> 24) & 0xFF] ^ S8[(ZCF >>> 16) & 0xFF] ^ S5[(Z8B >>> 16) & 0xFF];
-                KEYS[i++] = S5[(Z03 >>> 16) & 0xFF] ^ S6[(Z03 >>> 24) & 0xFF] ^ S7[(ZCF >>> 8) & 0xFF] ^ S8[(ZCF) & 0xFF] ^ S6[(ZCF >>> 24) & 0xFF];
-                KEYS[i++] = S5[(Z47) & 0xFF] ^ S6[(Z47 >>> 8) & 0xFF] ^ S7[(Z8B >>> 24) & 0xFF] ^ S8[(Z8B >>> 16) & 0xFF] ^ S7[(Z03 >>> 8) & 0xFF];
-                KEYS[i++] = S5[(Z47 >>> 16) & 0xFF] ^ S6[(Z47 >>> 24) & 0xFF] ^ S7[(Z8B >>> 8) & 0xFF] ^ S8[(Z8B) & 0xFF] ^ S8[(Z47 >>> 8) & 0xFF];
-
-
-                key_32[0] = Z8B ^ S5[(Z47 >>> 16) & 0xFF] ^ S6[(Z47) & 0xFF] ^ S7[(Z47 >>> 24) & 0xFF] ^ S8[(Z47 >>> 8) & 0xFF] ^ S7[(Z03 >>> 24) & 0xFF];
-                key_32[1] = Z03 ^ S5[(key_32[0] >>> 24) & 0xFF] ^ S6[(key_32[0] >>> 8) & 0xFF] ^ S7[(key_32[0] >>> 16) & 0xFF] ^ S8[(key_32[0]) & 0xFF] ^ S8[(Z03 >>> 8) & 0xFF];
-                key_32[2] = Z47 ^ S5[(key_32[1]) & 0xFF] ^ S6[(key_32[1] >>> 8) & 0xFF] ^ S7[(key_32[1] >>> 16) & 0xFF] ^ S8[(key_32[1] >> 24) & 0xFF] ^ S5[(Z03 >>> 16) & 0xFF];
-                key_32[3] = ZCF ^ S5[(key_32[2] >>> 8) & 0xFF] ^ S6[(key_32[2] >>> 16) & 0xFF] ^ S7[(key_32[2]) & 0xFF] ^ S8[(key_32[2] >>> 24) & 0xFF] ^ S6[(Z03) & 0xFF];
-
-                key_USED = BitUtil.ByteArrays.intArrayToByteArray(key_32);
-
-                KEYS[i++] = S5[(key_32[2] >>> 24) & 0xFF] ^ S6[(key_32[2] >>> 16) & 0xFF] ^ S7[(key_32[1]) & 0xFF] ^ S8[(key_32[1] >>> 8) & 0xFF] ^ S5[(key_32[0]) & 0xFF];
-                KEYS[i++] = S5[(key_32[2] >>> 8) & 0xFF] ^ S6[(key_32[2]) & 0xFF] ^ S7[(key_32[1] >>> 16) & 0xFF] ^ S8[(key_32[1] >>> 24) & 0xFF] ^ S6[key_32[1] & 0xFF];
-                KEYS[i++] = S5[(key_32[3] >>> 24) & 0xFF] ^ S6[(key_32[3] >>> 16) & 0xFF] ^ S7[key_32[0] & 0xFF] ^ S8[(key_32[0] >>> 8) & 0xFF] ^ S7[(key_32[2] >>> 24) & 0xFF];
-                KEYS[i++] = S5[(key_32[3] >>> 8) & 0xFF] ^ S6[(key_32[3]) & 0xFF] ^ S7[(key_32[0] >>> 16) & 0xFF] ^ S8[(key_32[0] >>> 24) & 0xFF] ^ S8[(key_32[3] >>> 16) & 0xFF];
-
-            }
-        }
-
-        private int F1(int R, int Km, int Kr) {
-            int I = (BitUtil.Rotation.rotateL((MathUtil.Operation.Add_32(Km, R)), Kr));
-            byte[] I_bytes = BitUtil.ByteArrays.intToByteArray(I);
-            byte I_a = I_bytes[0];
-            byte I_b = I_bytes[1];
-            byte I_c = I_bytes[2];
-            byte I_d = I_bytes[3];
-            return MathUtil.Operation.Add_32(S4[I_d & 0xFF], MathUtil.Operation.Sub_32((S1[I_a & 0xFF] ^ S2[I_b & 0xFF]), (S3[I_c & 0xFF])));
-        }
-
-        private int F2(int R, int Km, int Kr) {
-            int I = (BitUtil.Rotation.rotateL((Km ^ R), Kr));
-            byte[] I_bytes = BitUtil.ByteArrays.intToByteArray(I);
-            byte I_a = I_bytes[0];
-            byte I_b = I_bytes[1];
-            byte I_c = I_bytes[2];
-            byte I_d = I_bytes[3];
-            return (S4[I_d & 0xFF]) ^ (MathUtil.Operation.Add_32(MathUtil.Operation.Sub_32(S1[I_a & 0xFF], S2[I_b & 0xFF]), S3[I_c & 0xFF]));
-        }
-
-        private int F3(int R, int Km, int Kr) {
-            int I = (BitUtil.Rotation.rotateL((MathUtil.Operation.Sub_32(Km, R)), Kr));
-            byte[] I_bytes = BitUtil.ByteArrays.intToByteArray(I);
-            byte I_a = I_bytes[0];
-            byte I_b = I_bytes[1];
-            byte I_c = I_bytes[2];
-            byte I_d = I_bytes[3];
-            return MathUtil.Operation.Sub_32((S3[I_c & 0xFF]) ^ MathUtil.Operation.Add_32(S1[I_a & 0xFF], S2[I_b & 0xFF]), S4[I_d & 0xFF]);
-        }
     }
 }
