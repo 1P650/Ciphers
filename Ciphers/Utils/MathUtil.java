@@ -3,11 +3,22 @@ package Ciphers.Utils;
 public final class MathUtil {
     public static class Operation {
         public static int MultiplicativeInverse(int a, int m) {
-            a = a % m;
-            for (int x = 1; x < m; x++)
-                if ((a * x) % m == 1)
-                    return x;
-            return -1;
+            int m0 = m;
+            int y = 0, x = 1;
+            if (m == 1)
+                return 0;
+            while (a > 1) {
+                int q = a / m;
+                int t = m;
+                m = a % m;
+                a = t;
+                t = y;
+                y = x - q * y;
+                x = t;
+            }
+            if (x < 0)
+                x += m0;
+            return x;
         }
 
         public static int AdditiveInverse(int x, int n) {
