@@ -35,20 +35,11 @@ class TEA extends BlockCipher {
 
         TEA_algoritm(byte[] key) {
             super();
-            byte[] K0_B = new byte[4];
-            byte[] K1_B = new byte[4];
-            byte[] K2_B = new byte[4];
-            byte[] K3_B = new byte[4];
-
-            System.arraycopy(key, 0, K0_B, 0, 4);
-            System.arraycopy(key, 4, K1_B, 0, 4);
-            System.arraycopy(key, 8, K2_B, 0, 4);
-            System.arraycopy(key, 12, K3_B, 0, 4);
-
-            this.K0 = BitUtil.ByteArrays.byteArrayToInt(K0_B);
-            this.K1 = BitUtil.ByteArrays.byteArrayToInt(K1_B);
-            this.K2 = BitUtil.ByteArrays.byteArrayToInt(K2_B);
-            this.K3 = BitUtil.ByteArrays.byteArrayToInt(K3_B);
+            int[] K_T = BitUtil.ByteArrays.byteArrayToIntArray(key);
+            this.K0 = K_T[0];
+            this.K1 = K_T[1];
+            this.K2 = K_T[2];
+            this.K3 = K_T[3];
         }
 
         @Override
