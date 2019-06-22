@@ -23,6 +23,8 @@ Just implementation of different ciphers/hash functions/others.
 
 ### Applied utils
 * Cascade encryption (CipherCascade)
+***
+
 ### Utils
 * BitUtil (bit rotation, type conversion, hex&binary print,more)
 * AlgorithmUtil (index of element, reverse array, reverse matrix)
