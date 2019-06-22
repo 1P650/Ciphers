@@ -20,11 +20,9 @@ public final class MathUtil {
                 x += m0;
             return x;
         }
-
         public static int AdditiveInverse(int x, int n) {
             return ((n - x) % n);
         }
-
         public static int Multiply_16(int a, int b) {
             a &= 0xFFFF;
             b &= 0xFFFF;
@@ -40,22 +38,20 @@ public final class MathUtil {
                 }
             } else
                 return 1 - b;
-        }
 
+        }
         public static int Add_16(int a, int b) {
             return (a + b) & 0xFFFF;
         }
-
-        public static int Add_32(int a,int b){
-            return (int) (((long) a + (long)b) % (0x100000000L));
+        public static int Add_32(int a, int b) {
+            return (int) (((long) a + (long) b) % (0x100000000L));
         }
-
-        public static int Sub_32(int a, int b){
-            if( b <= a ) {
+        public static int Sub_32(int a, int b) {
+            if (b <= a) {
                 return a - b;
             }
 
-            return (int) (((0x100000000L) + a ) - b);
+            return (int) (((0x100000000L) + a) - b);
         }
     }
 }

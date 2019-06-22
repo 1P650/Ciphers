@@ -15,6 +15,7 @@ class GOST89 extends BlockCipher {
     }
 
 
+
     @Override
     public void setKey(byte[] key) {
         if (key == null || key.length != 32) throw new BlockCipherException(BlockCipherException.KEY_LEN, 256, 32);
@@ -49,10 +50,11 @@ class GOST89 extends BlockCipher {
         private byte[][] splittedKey = new byte[32][4];
 
         GOST89_algorithm() {
-            super.blocksize = 8;
+            super();
         }
 
         GOST89_algorithm(byte[] key) {
+            super();
             byte[][] splitted = BitUtil.Fission.splitTo4bytes(key);
             for (int i = 0; i < 8; i++) {
                 System.arraycopy(splitted[i], 0, splittedKey[i], 0, 4);
@@ -83,7 +85,7 @@ class GOST89 extends BlockCipher {
 
                 for (int j = 0; j < 32; j++) {
                     byte[] temp = A;
-                    A = BitUtil.Operation.Xor(B, f(A, splittedKey[j]));
+                    A = BitUtil.Operation.XOR(B, f(A, splittedKey[j]));
                     B = temp;
                 }
                 byte[] e_chuck = new byte[8];
@@ -115,7 +117,7 @@ class GOST89 extends BlockCipher {
 
                 for (int j = 0; j < 32; j++) {
                     byte[] temp = A;
-                    A = BitUtil.Operation.Xor(B, f(A, splittedKey_reversed[j]));
+                    A = BitUtil.Operation.XOR(B, f(A, splittedKey_reversed[j]));
                     B = temp;
                 }
 
@@ -129,7 +131,7 @@ class GOST89 extends BlockCipher {
             return decrypted;
         }
 
-        @Override
+       @Override
         byte[] encryptInCBC(byte[] input) {
             throw new BlockCipherException("In GOST89 this mode is not allowed!");
         }
@@ -153,14 +155,14 @@ class GOST89 extends BlockCipher {
         byte[] encryptInCTR(byte[] input) {
             if (this.IV == null) throw new BlockCipherException(BlockCipherException.IV_NULL, "GOST89");
             byte[] gamma = generateGamma(this.IV, input.length);
-            return BitUtil.Operation.Xor(input, gamma);
+            return BitUtil.Operation.XOR(input, gamma);
         }
 
         @Override
         byte[] decryptInCTR(byte[] input) {
             if (this.IV == null) throw new BlockCipherException(BlockCipherException.IV_NULL, "GOST89");
             byte[] gamma = generateGamma(this.IV, input.length);
-            return BitUtil.Operation.Xor(input, gamma);
+            return BitUtil.Operation.XOR(input, gamma);
         }
 
 
@@ -178,7 +180,7 @@ class GOST89 extends BlockCipher {
                 MAC = encryptInECB16(MAC);
                 byte[] chunck = new byte[blocksize];
                 System.arraycopy(input_extended, i, chunck, 0, blocksize);
-                BitUtil.Operation.Xor(MAC, chunck);
+                BitUtil.Operation.XOR(MAC, chunck);
             }
             return MAC;
         }
@@ -195,7 +197,7 @@ class GOST89 extends BlockCipher {
                 System.arraycopy(chunck, 4, A, 0, 4);
                 for (int j = 0; j < 16; j++) {
                     byte[] temp = A;
-                    A = BitUtil.Operation.Xor(B, f(A, splittedKey[j]));
+                    A = BitUtil.Operation.XOR(B, f(A, splittedKey[j]));
                     B = temp;
                 }
                 byte[] e_chuck = new byte[8];

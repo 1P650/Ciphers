@@ -16,7 +16,8 @@ class IDEA extends BlockCipher {
 
     @Override
     public void setKey(byte[] key) {
-        if (key == null || key.length != getKeySize()) throw new BlockCipherException(BlockCipherException.KEY_LEN, 128, 16);
+        if (key == null || key.length != getKeySize())
+            throw new BlockCipherException(BlockCipherException.KEY_LEN, 128, 16);
         byte[] IV_save = IDEA_A == null ? null : IDEA_A.IV;
         IDEA_A = new IDEA_algorithm(key);
         IDEA_A.IV = IV_save;
@@ -45,67 +46,78 @@ class IDEA extends BlockCipher {
         @Override
         byte[] encryptInECB(byte[] input) {
             if (input.length % blocksize != 0) throw new BlockCipherException(BlockCipherException.DATA_LEN, blocksize);
-            short[] input_16 = BitUtil.ByteArrays.byteArrayToShortArray(input);
-            int[] D_16 = new int[input_16.length];
-            int copy_counter;
-            for (copy_counter = 0; copy_counter < input_16.length; copy_counter++) {
-                D_16[copy_counter] = input_16[copy_counter];
+            byte[] encrypted = input.clone();
+            for (int k = 0; k < encrypted.length; k += blocksize) {
+                byte[] chunck = new byte[blocksize];
+                System.arraycopy(encrypted, k, chunck, 0, blocksize);
+                short[] input_16 = BitUtil.ByteArrays.byteArrayToShortArray(chunck);
+                int[] D_16 = new int[input_16.length];
+                int copy_counter;
+                for (copy_counter = 0; copy_counter < input_16.length; copy_counter++) {
+                    D_16[copy_counter] = input_16[copy_counter];
+                }
+                for (int i = 0; i < 8; i++) {
+                    ENC_round(D_16, i);
+                }
+                int D_16_1 = D_16[1];
+                D_16[0] = MathUtil.Operation.Multiply_16(D_16[0], KEY_TABLE_LAST[0]);
+                D_16[1] = MathUtil.Operation.Add_16(D_16[2], KEY_TABLE_LAST[1]);
+                D_16[2] = MathUtil.Operation.Add_16(D_16_1, KEY_TABLE_LAST[2]);
+                D_16[3] = MathUtil.Operation.Multiply_16(D_16[3], KEY_TABLE_LAST[3]);
+
+
+                byte[] encrypted_full = BitUtil.ByteArrays.intArrayToByteArray(D_16);
+                byte[] encrypted_m = new byte[encrypted_full.length / 2];
+                for (int i = 2, e = 0; i < encrypted_full.length; i += 2) {
+                    encrypted_m[e] = encrypted_full[i];
+                    encrypted_m[e + 1] = encrypted_full[i + 1];
+                    e += 2;
+                    i += 2;
+
+
+                }
+                System.arraycopy(encrypted_m, 0, encrypted, k, blocksize);
             }
-            for (int i = 0; i < 8; i++) {
-                ENC_round(D_16, i);
-            }
-            int D_16_1 = D_16[1];
-            D_16[0] = MathUtil.Operation.Multiply_16(D_16[0], KEY_TABLE_LAST[0]);
-            D_16[1] = MathUtil.Operation.Add_16(D_16[2], KEY_TABLE_LAST[1]);
-            D_16[2] = MathUtil.Operation.Add_16(D_16_1, KEY_TABLE_LAST[2]);
-            D_16[3] = MathUtil.Operation.Multiply_16(D_16[3], KEY_TABLE_LAST[3]);
 
-
-            byte[] encrypted_full = BitUtil.ByteArrays.intArrayToByteArray(D_16);
-            byte[] encrypted = new byte[encrypted_full.length / 2];
-            for (int i = 2, e = 0; i < encrypted_full.length; i += 2) {
-                encrypted[e] = encrypted_full[i];
-                encrypted[e + 1] = encrypted_full[i + 1];
-                e += 2;
-                i += 2;
-
-
-            }
 
             return encrypted;
-
         }
-
 
 
         @Override
         byte[] decryptInECB(byte[] input) {
             if (input.length % blocksize != 0) throw new BlockCipherException(BlockCipherException.DATA_LEN, blocksize);
-            short[] input_16 = BitUtil.ByteArrays.byteArrayToShortArray(input);
-            int[] D_16 = new int[input_16.length];
-            int copy_counter;
-            for (copy_counter = 0; copy_counter < input_16.length; copy_counter++) {
-                D_16[copy_counter] = input_16[copy_counter];
-            }
-            for (int i = 0; i < 8; i++) {
-                DEC_round(D_16, i);
-            }
-            int D_16_1 = D_16[1];
-            D_16[0] = MathUtil.Operation.Multiply_16(D_16[0], DKEY_TABLE_LAST[0]);
-            D_16[1] = MathUtil.Operation.Add_16(D_16[2], DKEY_TABLE_LAST[1]);
-            D_16[2] = MathUtil.Operation.Add_16(D_16_1, DKEY_TABLE_LAST[2]);
-            D_16[3] = MathUtil.Operation.Multiply_16(D_16[3], DKEY_TABLE_LAST[3]);
+            byte[] decrypted = input.clone();
+            for (int k = 0; k < decrypted.length; k += blocksize) {
+                byte[] chunck = new byte[blocksize];
+                System.arraycopy(decrypted, k, chunck, 0, blocksize);
+                short[] input_16 = BitUtil.ByteArrays.byteArrayToShortArray(chunck);
+                int[] D_16 = new int[input_16.length];
+                int copy_counter;
+                for (copy_counter = 0; copy_counter < input_16.length; copy_counter++) {
+                    D_16[copy_counter] = input_16[copy_counter];
+                }
+                for (int i = 0; i < 8; i++) {
+                    DEC_round(D_16, i);
+                }
+                int D_16_1 = D_16[1];
+                D_16[0] = MathUtil.Operation.Multiply_16(D_16[0], DKEY_TABLE_LAST[0]);
+                D_16[1] = MathUtil.Operation.Add_16(D_16[2], DKEY_TABLE_LAST[1]);
+                D_16[2] = MathUtil.Operation.Add_16(D_16_1, DKEY_TABLE_LAST[2]);
+                D_16[3] = MathUtil.Operation.Multiply_16(D_16[3], DKEY_TABLE_LAST[3]);
 
 
-            byte[] decrypted_full = BitUtil.ByteArrays.intArrayToByteArray(D_16);
-            byte[] decrypted = new byte[decrypted_full.length / 2];
-            for (int i = 2, e = 0; i < decrypted_full.length; i += 2) {
-                decrypted[e] = decrypted_full[i];
-                decrypted[e + 1] = decrypted_full[i + 1];
-                e += 2;
-                i += 2;
+                byte[] decrypted_full = BitUtil.ByteArrays.intArrayToByteArray(D_16);
+                byte[] decrypted_m = new byte[decrypted_full.length / 2];
+                for (int i = 2, e = 0; i < decrypted_full.length; i += 2) {
+                    decrypted_m[e] = decrypted_full[i];
+                    decrypted_m[e + 1] = decrypted_full[i + 1];
+                    e += 2;
+                    i += 2;
 
 
+                }
+                System.arraycopy(decrypted_m, 0, decrypted, k, blocksize);
             }
 
 

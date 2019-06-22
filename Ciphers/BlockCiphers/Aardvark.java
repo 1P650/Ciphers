@@ -50,7 +50,7 @@ public class Aardvark extends Cipher {
         byte[] C1 = H(P);
         byte[] C2 = H(C1, K);
         byte[] C3 = S(C2, P.length);
-        byte[] C4 = BitUtil.Operation.Xor(P, C3);
+        byte[] C4 = BitUtil.Operation.XOR(P, C3);
         byte[] C = new byte[C4.length + C1.length];
         System.arraycopy(C1, 0, C, 0, C1.length);
         System.arraycopy(C4, 0, C, C1.length, C4.length);
@@ -69,7 +69,7 @@ public class Aardvark extends Cipher {
         System.arraycopy(C, C1.length, C0, 0, C.length - len);
         byte[] C2 = H(C1, K);
         byte[] C3 = S(C2, C0.length);
-        byte[] P = BitUtil.Operation.Xor(C0, C3);
+        byte[] P = BitUtil.Operation.XOR(C0, C3);
         return P;
     }
 

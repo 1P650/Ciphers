@@ -45,59 +45,73 @@ class CAST5 extends BlockCipher {
         @Override
         byte[] encryptInECB(byte[] input) {
             if (input.length % blocksize != 0) throw new BlockCipherException(BlockCipherException.DATA_LEN, blocksize);
-            int[] input_32 = BitUtil.ByteArrays.byteArrayToIntArray(input);
-            int L = input_32[0];
-            int R = input_32[1];
-            for (int i = 0; i < ROUNDS; i++) {
-                int temp = R;
-                switch (i % 3) {
-                    case 0:
-                        R = L ^ F1(temp, KEYS[i], KEYS[16+i]);
-                        L = temp;
-                        break;
-                    case 1:
-                        R = L ^ F2(temp, KEYS[i], KEYS[16+i]);
-                        L = temp;
-                        break;
-                    case 2:
-                        R = L ^ F3(temp, KEYS[i], KEYS[16+i]);
-                        L = temp;
-                        break;
+            byte[] encrypted = input.clone();
+            for (int k = 0; k < encrypted.length; k+=blocksize) {
+                byte[] chunck = new byte[blocksize];
+                System.arraycopy(encrypted, k, chunck, 0, blocksize);
+                int[] input_32 = BitUtil.ByteArrays.byteArrayToIntArray(chunck);
+                int L = input_32[0];
+                int R = input_32[1];
+                for (int i = 0; i < ROUNDS; i++) {
+                    int temp = R;
+                    switch (i % 3) {
+                        case 0:
+                            R = L ^ F1(temp, KEYS[i], KEYS[16 + i]);
+                            L = temp;
+                            break;
+                        case 1:
+                            R = L ^ F2(temp, KEYS[i], KEYS[16 + i]);
+                            L = temp;
+                            break;
+                        case 2:
+                            R = L ^ F3(temp, KEYS[i], KEYS[16 + i]);
+                            L = temp;
+                            break;
+                    }
                 }
+                input_32[0] = R;
+                input_32[1] = L;
+                chunck = BitUtil.ByteArrays.intArrayToByteArray(input_32);
+                System.arraycopy(chunck,0,encrypted,k,blocksize);
             }
-            input_32[0] = R;
-            input_32[1] = L;
-            return BitUtil.ByteArrays.intArrayToByteArray(input_32);
+            return encrypted;
         }
 
         @Override
         byte[] decryptInECB(byte[] input) {
             if (input.length % blocksize != 0) throw new BlockCipherException(BlockCipherException.DATA_LEN, blocksize);
-            int[] input_32 = BitUtil.ByteArrays.byteArrayToIntArray(input);
-            int L = input_32[0];
-            int R = input_32[1];
-            for (int i = ROUNDS-1; i >=0; i--) {
-                int temp = R;
-                switch (i % 3) {
-                    case 0:
-                        R = L ^ F1(temp, KEYS[i], KEYS[16+i]);
-                        L = temp;
-                        break;
-                    case 1:
-                        R = L ^ F2(temp, KEYS[i], KEYS[16+i]);
-                        L = temp;
-                        break;
-                    case 2:
-                        R = L ^ F3(temp, KEYS[i], KEYS[16+i]);
-                        L = temp;
-                        break;
+            byte[] decrypted = input.clone();
+            for (int k = 0; k < decrypted.length; k+=blocksize) {
+                byte[] chunck = new byte[blocksize];
+                System.arraycopy(decrypted, k, chunck, 0, blocksize);
+                int[] input_32 = BitUtil.ByteArrays.byteArrayToIntArray(chunck);
+                int L = input_32[0];
+                int R = input_32[1];
+                for (int i = ROUNDS - 1; i >= 0; i--) {
+                    int temp = R;
+                    switch (i % 3) {
+                        case 0:
+                            R = L ^ F1(temp, KEYS[i], KEYS[16 + i]);
+                            L = temp;
+                            break;
+                        case 1:
+                            R = L ^ F2(temp, KEYS[i], KEYS[16 + i]);
+                            L = temp;
+                            break;
+                        case 2:
+                            R = L ^ F3(temp, KEYS[i], KEYS[16 + i]);
+                            L = temp;
+                            break;
+                    }
+
+
                 }
-
-
+                input_32[0] = R;
+                input_32[1] = L;
+                chunck = BitUtil.ByteArrays.intArrayToByteArray(input_32);
+                System.arraycopy(chunck,0,decrypted,k,blocksize);
             }
-            input_32[0] = R;
-            input_32[1] = L;
-            return BitUtil.ByteArrays.intArrayToByteArray(input_32);
+            return decrypted;
         }
 
 
@@ -165,32 +179,17 @@ class CAST5 extends BlockCipher {
 
         private int F1(int R, int Km, int Kr) {
             int I = (BitUtil.Rotation.rotateL((MathUtil.Operation.Add_32(Km, R)), Kr));
-            byte[] I_bytes = BitUtil.ByteArrays.intToByteArray(I);
-            byte I_a = I_bytes[0];
-            byte I_b = I_bytes[1];
-            byte I_c = I_bytes[2];
-            byte I_d = I_bytes[3];
-            return MathUtil.Operation.Add_32(S4[I_d & 0xFF], MathUtil.Operation.Sub_32((S1[I_a & 0xFF] ^ S2[I_b & 0xFF]), (S3[I_c & 0xFF])));
+            return MathUtil.Operation.Add_32(S4[I & 0xFF], MathUtil.Operation.Sub_32((S1[(I>>24) & 0xFF] ^ S2[(I >> 16)& 0xFF]), (S3[(I >> 8) & 0xFF])));
         }
 
         private int F2(int R, int Km, int Kr) {
             int I = (BitUtil.Rotation.rotateL((Km ^ R), Kr));
-            byte[] I_bytes = BitUtil.ByteArrays.intToByteArray(I);
-            byte I_a = I_bytes[0];
-            byte I_b = I_bytes[1];
-            byte I_c = I_bytes[2];
-            byte I_d = I_bytes[3];
-            return (S4[I_d & 0xFF]) ^ (MathUtil.Operation.Add_32(MathUtil.Operation.Sub_32(S1[I_a & 0xFF], S2[I_b & 0xFF]), S3[I_c & 0xFF]));
+            return (S4[I & 0xFF]) ^ (MathUtil.Operation.Add_32(MathUtil.Operation.Sub_32(S1[(I>>24) & 0xFF], S2[(I >> 16)& 0xFF]), S3[(I >> 8) & 0xFF]));
         }
 
         private int F3(int R, int Km, int Kr) {
             int I = (BitUtil.Rotation.rotateL((MathUtil.Operation.Sub_32(Km, R)), Kr));
-            byte[] I_bytes = BitUtil.ByteArrays.intToByteArray(I);
-            byte I_a = I_bytes[0];
-            byte I_b = I_bytes[1];
-            byte I_c = I_bytes[2];
-            byte I_d = I_bytes[3];
-            return MathUtil.Operation.Sub_32((S3[I_c & 0xFF]) ^ MathUtil.Operation.Add_32(S1[I_a & 0xFF], S2[I_b & 0xFF]), S4[I_d & 0xFF]);
+            return MathUtil.Operation.Sub_32((S3[(I >> 8) & 0xFF]) ^ MathUtil.Operation.Add_32(S1[(I>>24) & 0xFF], S2[(I >> 16)& 0xFF]), S4[I & 0xFF]);
         }
 
 

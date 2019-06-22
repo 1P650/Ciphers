@@ -17,20 +17,21 @@ public abstract class BlockCipher extends Cipher {
     BlockCipherAlgorithm algorithm;
 
 
-
-
     public static BlockCipher getInstance(BlockCipher blockCipher) {
         return blockCipher;
     }
+
     public static BlockCipher getInstance(BlockCipher blockCipher, byte mode) {
         blockCipher.setMode(mode);
         return blockCipher;
     }
+
     public static BlockCipher getInstance(BlockCipher blockCipher, byte mode, byte[] key) {
         blockCipher.setMode(mode);
         blockCipher.setKey(key);
         return blockCipher;
     }
+
     public static BlockCipher getInstance(BlockCipher blockCipher, byte mode, byte[] key, byte[] iv) {
         blockCipher.setMode(mode);
         blockCipher.setKey(key);
@@ -51,12 +52,13 @@ public abstract class BlockCipher extends Cipher {
                 return algorithm.encryptInCFB(plain);
             case BlockCipher.CTR:
                 return algorithm.encryptInCTR(plain);
-            default:{
-                if (plain.length % algorithm.blocksize != 0) throw new BlockCipherException(BlockCipherException.DATA_LEN, algorithm.blocksize);
-                return algorithm.encryptInECB(plain);}
+            default: {
+                if (plain.length % algorithm.blocksize != 0)
+                    throw new BlockCipherException(BlockCipherException.DATA_LEN, algorithm.blocksize);
+                return algorithm.encryptInECB(plain);
+            }
         }
     }
-
 
 
     @Override
@@ -71,9 +73,11 @@ public abstract class BlockCipher extends Cipher {
                 return algorithm.decryptInCFB(ciph);
             case BlockCipher.CTR:
                 return algorithm.decryptInCTR(ciph);
-            default:{
-                if (ciph.length % algorithm.blocksize != 0) throw new BlockCipherException(BlockCipherException.DATA_LEN, algorithm.blocksize);
-                return algorithm.decryptInECB(ciph);}
+            default: {
+                if (ciph.length % algorithm.blocksize != 0)
+                    throw new BlockCipherException(BlockCipherException.DATA_LEN, algorithm.blocksize);
+                return algorithm.decryptInECB(ciph);
+            }
         }
     }
 
@@ -91,7 +95,8 @@ public abstract class BlockCipher extends Cipher {
     }
 
     public void setIV(byte[] IV) {
-        if (IV == null || IV.length != getIV_Size()) throw new BlockCipherException(BlockCipherException.IV_LEN, getIV_Size()*8, getIV_Size());
+        if (IV == null || IV.length != getIV_Size())
+            throw new BlockCipherException(BlockCipherException.IV_LEN, getIV_Size() * 8, getIV_Size());
         algorithm.IV = IV;
     }
 
@@ -104,6 +109,7 @@ public abstract class BlockCipher extends Cipher {
     public int getKeySize() {
         return this.KeySize;
     }
+
     public int[] getPossibleKeySize() {
         return this.PossibleKeySizes;
     }
@@ -148,7 +154,7 @@ public abstract class BlockCipher extends Cipher {
 
         }
 
-        BlockCipherAlgorithm(byte[] key){
+        BlockCipherAlgorithm(byte[] key) {
 
         }
 
@@ -276,7 +282,9 @@ public abstract class BlockCipher extends Cipher {
             byte[] gamma = new byte[BitUtil.Extend.extendToSize(input.length, blocksize)];
             byte[] CTR = this.IV.clone();
             for (int i = 0; i < gamma.length; i += blocksize) {
-                CTR = encryptInECB(BitUtil.ByteArrays.longToByteArray(BitUtil.ByteArrays.byteArrayToLong(CTR) + 1));
+                long[] CTR_l = BitUtil.ByteArrays.byteArrayToLongArray(CTR);
+                CTR_l[0] += 1;
+                CTR = encryptInECB(BitUtil.ByteArrays.longArrayToByteArray(CTR_l));
                 System.arraycopy(CTR, 0, gamma, i, blocksize);
             }
 
@@ -288,7 +296,10 @@ public abstract class BlockCipher extends Cipher {
             byte[] gamma = new byte[BitUtil.Extend.extendToSize(input.length, blocksize)];
             byte[] CTR = this.IV.clone();
             for (int i = 0; i < gamma.length; i += blocksize) {
-                CTR = encryptInECB(BitUtil.ByteArrays.longToByteArray(BitUtil.ByteArrays.byteArrayToLong(CTR) + 1));
+                long[] CTR_l = BitUtil.ByteArrays.byteArrayToLongArray(CTR);
+                CTR_l[0] += 1;
+                if(CTR_l[0] < 0){CTR_l[0] = 0; CTR_l[1] +=1;}
+                CTR = encryptInECB(BitUtil.ByteArrays.longArrayToByteArray(CTR_l));
                 System.arraycopy(CTR, 0, gamma, i, blocksize);
             }
 

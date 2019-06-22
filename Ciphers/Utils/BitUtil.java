@@ -1,8 +1,6 @@
 package Ciphers.Utils;
 
 
-import java.math.BigInteger;
-
 public final class BitUtil {
 
     private static final int BYTE_BITSIZE = 8;
@@ -223,7 +221,7 @@ public final class BitUtil {
     }
 
     public static class Print {
-        public static void printHex(byte[] input) {
+        public static void printHex(byte... input) {
             java.io.PrintStream stream = new java.io.PrintStream(System.out);
             for (byte b : input) {
                 stream.printf("%x", b);
@@ -232,7 +230,7 @@ public final class BitUtil {
         }
 
 
-        public static void printHex(short[] input) {
+        public static void printHex(short... input) {
             java.io.PrintStream stream = new java.io.PrintStream(System.out);
             for (short b : input) {
                 stream.printf("%04x", b);
@@ -241,7 +239,7 @@ public final class BitUtil {
         }
 
 
-        public static void printHex(int[] input) {
+        public static void printHex(int... input) {
             java.io.PrintStream stream = new java.io.PrintStream(System.out);
             for (int b : input) {
                 stream.printf("%04x", b);
@@ -249,7 +247,7 @@ public final class BitUtil {
             stream.print("\n");
         }
 
-        public static void printHex(long[] input) {
+        public static void printHex(long... input) {
             java.io.PrintStream stream = new java.io.PrintStream(System.out);
             for (long b : input) {
                 stream.printf("%x", b);
@@ -292,7 +290,7 @@ public final class BitUtil {
         }
 
 
-        public static void printBinary(byte[] input) {
+        public static void printBinary(byte... input) {
             java.io.PrintStream stream = new java.io.PrintStream(System.out);
             for (byte b : input) {
                 printHex(Binary.toBinaryOctets(b));
@@ -301,7 +299,7 @@ public final class BitUtil {
         }
 
 
-        public static void printBinary(short[] input) {
+        public static void printBinary(short... input) {
             byte[] input_b = ByteArrays.shortArrayToByteArray(input);
             java.io.PrintStream stream = new java.io.PrintStream(System.out);
             for (byte b : input_b) {
@@ -311,7 +309,7 @@ public final class BitUtil {
         }
 
 
-        public static void printBinary(int[] input) {
+        public static void printBinary(int... input) {
             byte[] input_b = ByteArrays.intArrayToByteArray(input);
             java.io.PrintStream stream = new java.io.PrintStream(System.out);
             for (byte b : input_b) {
@@ -320,7 +318,7 @@ public final class BitUtil {
             stream.print("\n");
         }
 
-        public static void printBinary(long[] input) {
+        public static void printBinary(long... input) {
             byte[] input_b = ByteArrays.longArrayToByteArray(input);
             java.io.PrintStream stream = new java.io.PrintStream(System.out);
             for (byte b : input_b) {
@@ -357,7 +355,6 @@ public final class BitUtil {
             }
             return retq;
         }
-
 
         public static byte[] splitBy4bits(byte[] input) {
             byte[] input_4bit = new byte[input.length << 1];
@@ -426,40 +423,6 @@ public final class BitUtil {
             return NOT(XOR(c, b));
         }
 
-        public static int MultiplicativeInverse(int a, int m) {
-            a = a % m;
-            for (int x = 1; x < m; x++)
-                if ((a * x) % m == 1)
-                    return x;
-        return -1;
-    }
-
-
-
-
-        public static int AdditiveInverse(int x, int n) {
-            return ((n - x) % n);
-        }
-
-        public static int Multiply_16(int a, int b) {
-            a &= 0xFFFF;
-            b &= 0xFFFF;
-            int p;
-            if (a != 0) {
-                if (b != 0) {
-                    p = a * b;
-                    b = p & 0xFFFF;
-                    a = p >>> 16;
-                    return (short)(b - a + (b < a ? 1 : 0));
-                } else
-                    return (short)(1 - a);
-            } else
-                return (short)(1 - b);
-        }
-
-        public static int Add_16(int a, int b) {
-            return (a + b) & 0xFFFF;
-        }
     }
 
     public static class Binary {
