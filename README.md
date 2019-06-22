@@ -21,7 +21,11 @@ Just implementation of different ciphers/hash functions/others.
 * ISAAC CSPRNG (not correctly implemented but still)
 ***
 
+### Applied utils
+* Cascade encryption (CipherCascade)
 ### Utils
 * BitUtil (bit rotation, type conversion, hex&binary print,more)
 * AlgorithmUtil (index of element, reverse array, reverse matrix)
 * MathUtil (modulo operations, more will be soon)
+
+
