@@ -298,7 +298,7 @@ public abstract class BlockCipher extends Cipher {
             for (int i = 0; i < gamma.length; i += blocksize) {
                 long[] CTR_l = BitUtil.ByteArrays.byteArrayToLongArray(CTR);
                 CTR_l[0] += 1;
-                if(CTR_l[0] < 0){CTR_l[0] = 0; CTR_l[1] +=1;}
+                if(CTR_l[0] < 0 && CTR_l.length > 1){CTR_l[0] = 0; CTR_l[1] +=1;}
                 CTR = encryptInECB(BitUtil.ByteArrays.longArrayToByteArray(CTR_l));
                 System.arraycopy(CTR, 0, gamma, i, blocksize);
             }
