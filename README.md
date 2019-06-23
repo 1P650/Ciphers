@@ -12,6 +12,7 @@ Just implementation of different ciphers/hash functions/others.
 * IDEA (International Data Encryption Algorithm) (ECB mode, CBC mode, OFB mode, CFB mode, CTR mode)
 * CAST-128 (CAST5) (ECB mode, CBC mode, OFB mode, CFB mode, CTR mode)
 * CAST-256 (CAST6) (ECB mode, CBC mode, OFB mode, CFB mode, CTR mode)
+* Cobra (Cobra128) (ECB mode, CBC mode, OFB mode, CFB mode, CTR mode)
 ***
 ### Hash Functions
 * SHA1
