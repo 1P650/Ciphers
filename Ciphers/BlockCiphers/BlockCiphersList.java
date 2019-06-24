@@ -32,7 +32,6 @@ public interface BlockCiphersList {
         return new REDOCII();
     }
 
-
     static BlockCipher CAST5() {
         return new CAST5();
     }

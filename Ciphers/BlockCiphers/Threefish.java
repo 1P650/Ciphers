@@ -1,6 +1,6 @@
 package Ciphers.BlockCiphers;
 
-public class Threefish extends BlockCipher {
+class Threefish extends BlockCipher {
     @Override
     public void setKey(byte[] key) {
 

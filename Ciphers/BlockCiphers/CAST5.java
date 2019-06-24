@@ -5,7 +5,7 @@ import Ciphers.Utils.MathUtil;
 
 class CAST5 extends BlockCipher {
     private CAST5_algorithm CAST5_A;
-    private final int[] KEY_SIZES = new int[]{5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+    private final int[] KEY_SIZES = new int[]{5, 16};
 
     CAST5() {
         CAST5_A = new CAST5_algorithm();
@@ -17,7 +17,7 @@ class CAST5 extends BlockCipher {
 
     @Override
     public void setKey(byte[] key) {
-        if (key == null || (key.length < KEY_SIZES[0] || key.length > KEY_SIZES[11]))
+        if (key == null || (key.length < KEY_SIZES[0] || key.length > KEY_SIZES[1]))
             throw new BlockCipherException(BlockCipherException.KEY_LEN_MANY, "from 40 up to 128 (%8 = 0)", "from 5 up to 16");
         byte[] IV_save = CAST5_A == null ? null : CAST5_A.IV;
         CAST5_A = new CAST5_algorithm(key);

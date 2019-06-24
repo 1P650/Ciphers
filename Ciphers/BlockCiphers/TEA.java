@@ -27,7 +27,7 @@ class TEA extends BlockCipher {
     private class TEA_algoritm extends BlockCipherAlgorithm {
         private int DELTA_E = 0x9e3779b9;
         private int DELTA_D = 0xc6ef3720;
-        private int K0, K1, K2, K3 = 0;
+        private int K0, K1, K2, K3;
 
         TEA_algoritm() {
             super();
