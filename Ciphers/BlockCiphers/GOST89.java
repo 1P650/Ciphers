@@ -2,7 +2,7 @@ package Ciphers.BlockCiphers;
 
 import Ciphers.Utils.AlgorithmUtil;
 import Ciphers.Utils.BitUtil;
-public class GOST89 extends BlockCipher {
+class GOST89 extends BlockCipher {
     private GOST89_algorithm GOST89_A;
 
     GOST89() {
