@@ -82,7 +82,7 @@ public final class MathUtil {
                 int sumK = (low[k] ) + (great[k] );
                 sumK = sumK + remainder;
                 byte sumK_B = (byte) (sumK & 0xff);
-                remainder =  (sumK - sumK_B) & 0xffffff00;
+                remainder =  (sumK - sumK_B) & 0x00000f00;
                 if(sumK_B == 0) remainder = 257;
                 result[k] = sumK_B;
             }
