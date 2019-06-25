@@ -2,9 +2,7 @@ package Ciphers.BlockCiphers;
 
 import Ciphers.Utils.AlgorithmUtil;
 import Ciphers.Utils.BitUtil;
-
-
-class GOST89 extends BlockCipher {
+public class GOST89 extends BlockCipher {
     private GOST89_algorithm GOST89_A;
 
     GOST89() {
@@ -13,7 +11,6 @@ class GOST89 extends BlockCipher {
         super.KeySize = 32;
         super.IV_Size = 8;
     }
-
 
 
     @Override
@@ -25,16 +22,14 @@ class GOST89 extends BlockCipher {
         super.algorithm = GOST89_A;
     }
 
-
     @Override
     public byte[] MAC(byte[] input) {
         return GOST89_A.MAC(input);
     }
 
-
     private class GOST89_algorithm extends BlockCipher.BlockCipherAlgorithm {
-        private final int C2 = 0x1010101;
         private final int C1 = 0x1010104;
+        private final int C2 = 0x1010101;
         private final byte[][] S = new byte[][]{
                 {0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xA, 0xB, 0xC, 0xD, 0xE, 0xF},
                 {0xC, 0x4, 0x6, 0x2, 0xA, 0x5, 0xB, 0x9, 0xE, 0x8, 0xD, 0x7, 0x0, 0x3, 0xF, 0x1},
@@ -46,8 +41,7 @@ class GOST89 extends BlockCipher {
                 {0x8, 0xE, 0x2, 0x5, 0x6, 0x9, 0x1, 0xC, 0xF, 0x4, 0xB, 0x0, 0xD, 0xA, 0x3, 0x7},
                 {0x1, 0x7, 0xE, 0xD, 0x0, 0x5, 0x8, 0x3, 0x4, 0xF, 0xA, 0x6, 0x9, 0xC, 0xB, 0x2},
         };
-
-        private byte[][] splittedKey = new byte[32][4];
+        int[] e_key = new int[32];
 
         GOST89_algorithm() {
             super();
@@ -55,118 +49,123 @@ class GOST89 extends BlockCipher {
 
         GOST89_algorithm(byte[] key) {
             super();
-            byte[][] splitted = BitUtil.Fission.splitTo4bytes(key);
-            for (int i = 0; i < 8; i++) {
-                System.arraycopy(splitted[i], 0, splittedKey[i], 0, 4);
-                System.arraycopy(splitted[i], 0, splittedKey[i + 4], 0, 4);
-                System.arraycopy(splitted[i], 0, splittedKey[i + 8], 0, 4);
-                System.arraycopy(splitted[i], 0, splittedKey[i + 12], 0, 4);
-                System.arraycopy(splitted[i], 0, splittedKey[i + 16], 0, 4);
-                System.arraycopy(splitted[i], 0, splittedKey[32 - i - 1], 0, 4);
-            }
-
-
+            int[] key_32_t = BitUtil.ByteArrays.byteArrayToIntArray(key);
+            System.arraycopy(key_32_t, 0, e_key, 0, 8);
+            System.arraycopy(key_32_t, 0, e_key, 8, 8);
+            System.arraycopy(key_32_t, 0, e_key, 16, 8);
+            AlgorithmUtil.reverseArray(key_32_t);
+            System.arraycopy(key_32_t, 0, e_key, 24, 8);
         }
-
 
         @Override
         byte[] encryptInECB(byte[] input) {
-            if (input.length % blocksize != 0) throw new BlockCipherException(BlockCipherException.DATA_LEN, 8);
-
-            byte[] encrypted = new byte[input.length];
-
-            for (int i = 0; i < input.length; i += 8) {
-                byte[] chunck = new byte[8];
-                System.arraycopy(input, i, chunck, 0, 8);
-                byte[] A = new byte[4];
-                byte[] B = new byte[4];
-                System.arraycopy(chunck, 0, B, 0, 4);
-                System.arraycopy(chunck, 4, A, 0, 4);
-
-                for (int j = 0; j < 32; j++) {
-                    byte[] temp = A;
-                    A = BitUtil.Operation.XOR(B, f(A, splittedKey[j]));
-                    B = temp;
+            int[] encrypted = BitUtil.ByteArrays.byteArrayToIntArray(input);
+            for (int k = 0; k < encrypted.length; k+=2) {
+                int[] chunck = new int[2];
+                System.arraycopy(encrypted,k,chunck,0,2);
+                int B = chunck[1];
+                int A = chunck[0];
+                for (int i = 0; i < 32; i++) {
+                    int temp = B;
+                    B = A ^ F(B, e_key[i]);
+                    A = temp;
                 }
-                byte[] e_chuck = new byte[8];
-                System.arraycopy(A, 0, e_chuck, 0, 4);
-                System.arraycopy(B, 0, e_chuck, 4, 4);
-                System.arraycopy(e_chuck, 0, encrypted, i, 8);
+                System.arraycopy(new int[]{B,A}, 0, encrypted, k,2);
             }
-            return encrypted;
+
+            return BitUtil.ByteArrays.intArrayToByteArray(encrypted);
         }
 
         @Override
         byte[] decryptInECB(byte[] input) {
-            if (input.length % blocksize != 0) throw new BlockCipherException(BlockCipherException.DATA_LEN);
-
-            byte[] decrypted = new byte[input.length];
-            byte[][] splittedKey_reversed = splittedKey.clone();
-            AlgorithmUtil.reverseMatrix(splittedKey_reversed);
-
-            for (int i = 0; i < input.length; i += 8) {
-
-                byte[] chunck = new byte[8];
-                System.arraycopy(input, i, chunck, 0, 8);
-
-                byte[] A = new byte[4];
-                byte[] B = new byte[4];
-
-                System.arraycopy(chunck, 0, B, 0, 4);
-                System.arraycopy(chunck, 4, A, 0, 4);
-
-                for (int j = 0; j < 32; j++) {
-                    byte[] temp = A;
-                    A = BitUtil.Operation.XOR(B, f(A, splittedKey_reversed[j]));
-                    B = temp;
+            int[] decrypted = BitUtil.ByteArrays.byteArrayToIntArray(input);
+            for (int k = 0; k < decrypted.length; k+=2) {
+                int[] chunck = new int[2];
+                System.arraycopy(decrypted, k, chunck, 0, 2);
+                int B = chunck[1];
+                int A = chunck[0];
+                for (int i = 31; i >= 0; i--) {
+                    int temp = B;
+                    B = A ^ F(B, e_key[i]);
+                    A = temp;
                 }
-
-                byte[] d_chuck = new byte[8];
-
-                System.arraycopy(A, 0, d_chuck, 0, 4);
-                System.arraycopy(B, 0, d_chuck, 4, 4);
-                System.arraycopy(d_chuck, 0, decrypted, i, 8);
+                System.arraycopy(new int[]{B,A}, 0, decrypted, k,2);
             }
-
-            return decrypted;
-        }
-
-       @Override
-        byte[] encryptInCBC(byte[] input) {
-            throw new BlockCipherException("In GOST89 this mode is not allowed!");
-        }
-
-        @Override
-        byte[] decryptInCBC(byte[] input) {
-            throw new BlockCipherException("In GOST89 this mode is not allowed!");
-        }
-
-        @Override
-        byte[] decryptInOFB(byte[] input) {
-            throw new BlockCipherException("In GOST89 this mode is not allowed!");
-        }
-
-        @Override
-        byte[] encryptInOFB(byte[] input) {
-            throw new BlockCipherException("In GOST89 this mode is not allowed!");
+            return BitUtil.ByteArrays.intArrayToByteArray(decrypted);
         }
 
         @Override
         byte[] encryptInCTR(byte[] input) {
-            if (this.IV == null) throw new BlockCipherException(BlockCipherException.IV_NULL, "GOST89");
+            if (this.IV == null) throw new BlockCipherException(BlockCipherException.IV_NULL);
             byte[] gamma = generateGamma(this.IV, input.length);
             return BitUtil.Operation.XOR(input, gamma);
         }
 
         @Override
         byte[] decryptInCTR(byte[] input) {
-            if (this.IV == null) throw new BlockCipherException(BlockCipherException.IV_NULL, "GOST89");
+            if (this.IV == null) throw new BlockCipherException(BlockCipherException.IV_NULL);
             byte[] gamma = generateGamma(this.IV, input.length);
             return BitUtil.Operation.XOR(input, gamma);
         }
 
+        private byte[] encryptInECB16(byte[] mac) {
+            int[] encrypted = BitUtil.ByteArrays.byteArrayToIntArray(mac);
+            for (int k = 0; k < encrypted.length; k+=2) {
+                int[] chunck = new int[2];
+                System.arraycopy(encrypted,k,chunck,0,2);
+                int B = chunck[1];
+                int A = chunck[0];
+                for (int i = 0; i < 16; i++) {
+                    int temp = B;
+                    B = A ^ F(B, e_key[i]);
+                    A = temp;
+                }
+                System.arraycopy(new int[]{B,A}, 0, encrypted, k,2);
+            }
 
-        byte[] MAC(byte[] input) {
+            return BitUtil.ByteArrays.intArrayToByteArray(encrypted);
+        }
+
+        private byte[] generateGamma(byte[] iv, int len) {
+            byte[] iv_clone = encryptInECB(iv);
+            int [] iv_32 = BitUtil.ByteArrays.byteArrayToIntArray(iv_clone);
+            byte[] gamma_extended = new byte[BitUtil.Extend.extendToSize(len, 8)];
+            int N1 = iv_32[0];
+            int N2 = iv_32[1];
+            byte[] gamma_1 = gamma_round(N1, N2);
+            System.arraycopy(gamma_1, 0, gamma_extended, 0, 8);
+            for (int i = 0; i < len; i += 8) {
+                byte[] N_b = new byte[8];
+                System.arraycopy(gamma_extended, i, N_b, 0, 4);
+                System.arraycopy(gamma_extended, i + 4, N_b, 4, 4);
+                int[] N = BitUtil.ByteArrays.byteArrayToIntArray(N_b);
+                N1 = N[0];
+                N2 = N[1];
+                gamma_1 = gamma_round(N1, N2);
+                System.arraycopy(gamma_1, 0, gamma_extended, i, 8);
+            }
+
+            byte[] gamma = new byte[len];
+            System.arraycopy(gamma_extended, 0, gamma, 0, gamma.length);
+            return gamma;
+        }
+        private byte[] gamma_round(int N1, int N2) {
+            N1 = N1 + C2;
+            N2 = N2 + C1;
+            return encryptInECB(BitUtil.ByteArrays.intArrayToByteArray(new int[]{N1,N2}));
+
+        }
+
+        private int F(int A, int Ki) {
+            int A_Ki = A + Ki;
+            byte[] A_4 = BitUtil.Fission.splitBy4bits(BitUtil.ByteArrays.intToByteArray(A_Ki));
+            for (int i = 7, j = 1; i >= 0; i--) A_4[i] = S[j++][A_4[i] & 0xFF];
+            A_Ki = BitUtil.ByteArrays.byteArrayToInt(BitUtil.Fission.concatBy4bit(A_4));
+            A_Ki = BitUtil.Rotation.rotateL(A_Ki, 11);
+            return A_Ki;
+        }
+
+        private byte[] MAC(byte[] input){
             byte[] input_extended;
             if (input.length % blocksize != 0) {
                 input_extended = new byte[BitUtil.Extend.extendToSize(input.length, blocksize)];
@@ -176,79 +175,18 @@ class GOST89 extends BlockCipher {
             }
             byte[] MAC = new byte[blocksize];
             System.arraycopy(input_extended, 0, MAC, 0, blocksize);
-            for (int i = 8; i < input_extended.length - blocksize; i += blocksize) {
+            BitUtil.Print.printHex(MAC);
+            for (int i = 0; i < input_extended.length; i += blocksize) {
                 MAC = encryptInECB16(MAC);
                 byte[] chunck = new byte[blocksize];
                 System.arraycopy(input_extended, i, chunck, 0, blocksize);
-                BitUtil.Operation.XOR(MAC, chunck);
+                MAC = BitUtil.Operation.XOR(MAC, chunck);
             }
+
             return MAC;
         }
 
-        private byte[] encryptInECB16(byte[] input) {
-            if (input.length % 8 != 0) throw new BlockCipherException(BlockCipherException.DATA_LEN, 64, 8);
-            byte[] encrypted = new byte[input.length];
-            for (int i = 0; i < input.length; i += 8) {
-                byte[] chunck = new byte[8];
-                System.arraycopy(input, i, chunck, 0, 8);
-                byte[] A = new byte[4];
-                byte[] B = new byte[4];
-                System.arraycopy(chunck, 0, B, 0, 4);
-                System.arraycopy(chunck, 4, A, 0, 4);
-                for (int j = 0; j < 16; j++) {
-                    byte[] temp = A;
-                    A = BitUtil.Operation.XOR(B, f(A, splittedKey[j]));
-                    B = temp;
-                }
-                byte[] e_chuck = new byte[8];
-                System.arraycopy(A, 0, e_chuck, 0, 4);
-                System.arraycopy(B, 0, e_chuck, 4, 4);
-                System.arraycopy(e_chuck, 0, encrypted, i, 8);
-            }
-            return encrypted;
-        }
 
-        private byte[] f(byte[] A, byte[] Ki) {
-            byte[] A_Ki = BitUtil.ByteArrays.intToByteArray((BitUtil.ByteArrays.byteArrayToInt(A) + BitUtil.ByteArrays.byteArrayToInt(Ki)));
-            A_Ki = BitUtil.Fission.splitBy4bits(A_Ki);
-            for (int i = 0; i < A_Ki.length; i++) {
-                A_Ki[i] = S[i][AlgorithmUtil.binarySearch(S[0], (A_Ki[i]), 0, 16)];
-            }
-            A_Ki = BitUtil.Fission.concatBy4bit(A_Ki);
-            A_Ki = BitUtil.ByteArrays.intToByteArray(BitUtil.Rotation.rotateL(BitUtil.ByteArrays.byteArrayToInt(A_Ki), 11));
-            return A_Ki;
-        }
-
-        private byte[] generateGamma(byte[] iv, int len) {
-            byte[] iv_clone = encryptInECB(iv);
-            byte[] gamma_extended = new byte[BitUtil.Extend.extendToSize(len, 8)];
-            byte[] N1 = new byte[4];
-            byte[] N2 = new byte[4];
-            System.arraycopy(iv_clone, 0, N1, 0, 4);
-            byte[] gamma_1 = gamma_round(N1, N2);
-            System.arraycopy(gamma_1, 0, gamma_extended, 0, 8);
-
-            for (int i = 0; i < len; i += 8) {
-                System.arraycopy(gamma_extended, i, N1, 0, 4);
-                System.arraycopy(gamma_extended, i + 4, N2, 0, 4);
-                gamma_1 = gamma_round(N1, N2);
-                System.arraycopy(gamma_1, 0, gamma_extended, i, 8);
-            }
-
-            byte[] gamma = new byte[len];
-            System.arraycopy(gamma_extended, 0, gamma, 0, gamma.length);
-            return gamma;
-        }
-
-        private byte[] gamma_round(byte[] N1, byte[] N2) {
-            byte[] gamma = new byte[8];
-            N1 = BitUtil.ByteArrays.intToByteArray(BitUtil.ByteArrays.byteArrayToInt(N1) + C2);
-            N2 = BitUtil.ByteArrays.intToByteArray(BitUtil.ByteArrays.byteArrayToInt(N2) + C1);
-            System.arraycopy(N1, 0, gamma, 0, 4);
-            System.arraycopy(N2, 0, gamma, 4, 4);
-            gamma = encryptInECB(gamma);
-            return gamma;
-
-        }
     }
 }
+
