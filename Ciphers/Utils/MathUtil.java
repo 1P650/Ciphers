@@ -62,7 +62,7 @@ public final class MathUtil {
 
     public static class BigNumbersOperation {
 
-        public static byte[] Sum(byte[] a, byte[] b) {
+       public static byte[] Sum(byte[] a, byte[] b) {
             byte[] great, low;
             if (a.length > b.length) {
                 great = a.clone();
@@ -71,20 +71,23 @@ public final class MathUtil {
                 great = b.clone();
                 low = a.clone();
             }
-
-
             AlgorithmUtil.reverseArray(great);
             AlgorithmUtil.reverseArray(low);
+            byte[] low_0 = new byte[great.length];
+            System.arraycopy(low,0,low_0,0,low.length);
+            low = low_0.clone();
             int remainder = 0;
+            byte[] result = new byte[great.length];
             for (int k = 0; k < low.length; k++) {
-                int sumK = (int) low[k] + (int) great[k];
+                int sumK = (low[k] ) + (great[k] );
                 sumK = sumK + remainder;
-                byte sumK_B = (byte) (sumK & 0b11111111);
-                remainder =  (sumK - sumK_B) & 0b11111111111111111111111100000000;
-                great[k] = sumK_B;
+                byte sumK_B = (byte) (sumK & 0xff);
+                remainder =  (sumK - sumK_B) & 0xffffff00;
+                if(sumK_B == 0) remainder = 257;
+                result[k] = sumK_B;
             }
-            AlgorithmUtil.reverseArray(great);
-            return great;
+            AlgorithmUtil.reverseArray(result);
+            return result;
         }
     }
 
