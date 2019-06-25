@@ -2,6 +2,7 @@ package Ciphers.BlockCiphers;
 
 import Ciphers.Basic.Cipher;
 import Ciphers.Utils.BitUtil;
+import Ciphers.Utils.MathUtil;
 
 
 public abstract class BlockCipher extends Cipher {
@@ -45,12 +46,16 @@ public abstract class BlockCipher extends Cipher {
         if (plain == null || plain.length == 0) throw new BlockCipherException(BlockCipherException.DATA_NULL);
         switch (this.MODE_SELECTED) {
             case BlockCipher.CBC:
+                if (this.algorithm.IV == null) throw new BlockCipherException(BlockCipherException.IV_NULL);
                 return algorithm.encryptInCBC(plain);
             case BlockCipher.OFB:
+                if (this.algorithm.IV == null) throw new BlockCipherException(BlockCipherException.IV_NULL);
                 return algorithm.encryptInOFB(plain);
             case BlockCipher.CFB:
+                if (this.algorithm.IV == null) throw new BlockCipherException(BlockCipherException.IV_NULL);
                 return algorithm.encryptInCFB(plain);
             case BlockCipher.CTR:
+                if (this.algorithm.IV == null) throw new BlockCipherException(BlockCipherException.IV_NULL);
                 return algorithm.encryptInCTR(plain);
             default: {
                 if (plain.length % algorithm.blocksize != 0)
@@ -66,16 +71,22 @@ public abstract class BlockCipher extends Cipher {
         if (ciph == null || ciph.length == 0) throw new BlockCipherException(BlockCipherException.DATA_NULL);
         switch (this.MODE_SELECTED) {
             case BlockCipher.CBC:
+                if (this.algorithm.IV == null) throw new BlockCipherException(BlockCipherException.IV_NULL);
                 return algorithm.decryptInCBC(ciph);
             case BlockCipher.OFB:
+                if (this.algorithm.IV == null) throw new BlockCipherException(BlockCipherException.IV_NULL);
                 return algorithm.decryptInOFB(ciph);
             case BlockCipher.CFB:
+                if (this.algorithm.IV == null) throw new BlockCipherException(BlockCipherException.IV_NULL);
                 return algorithm.decryptInCFB(ciph);
             case BlockCipher.CTR:
+                if (this.algorithm.IV == null) throw new BlockCipherException(BlockCipherException.IV_NULL);
                 return algorithm.decryptInCTR(ciph);
             default: {
-                if (ciph.length % algorithm.blocksize != 0)
+                if ((ciph.length % algorithm.blocksize != 0)) {
                     throw new BlockCipherException(BlockCipherException.DATA_LEN, algorithm.blocksize);
+                }
+
                 return algorithm.decryptInECB(ciph);
             }
         }
@@ -164,7 +175,6 @@ public abstract class BlockCipher extends Cipher {
 
 
         byte[] encryptInCBC(byte[] input) {
-            if (this.IV == null) throw new BlockCipherException(BlockCipherException.IV_NULL);
             byte last_len = (byte) (input.length % blocksize == 0 ? 0 : BitUtil.Extend.extendToSize(input.length, blocksize) - input.length);
             byte[] input_extended = new byte[input.length % blocksize == 0 ? input.length + blocksize : BitUtil.Extend.extendToSize(input.length, blocksize)];
             System.arraycopy(input, 0, input_extended, 0, input.length);
@@ -187,7 +197,6 @@ public abstract class BlockCipher extends Cipher {
         }
 
         byte[] decryptInCBC(byte[] input) {
-            if (this.IV == null) throw new BlockCipherException(BlockCipherException.IV_NULL);
             byte[] STATE = this.IV.clone();
             byte[] decrypted_extended = new byte[input.length];
             for (int i = 0; i <= input.length - blocksize; i += blocksize) {
@@ -207,7 +216,6 @@ public abstract class BlockCipher extends Cipher {
         }
 
         byte[] encryptInOFB(byte[] input) {
-            if (this.IV == null) throw new BlockCipherException(BlockCipherException.IV_NULL);
             byte[] gamma = new byte[BitUtil.Extend.extendToSize(input.length, blocksize)];
             byte[] STATE = this.IV.clone();
             for (int i = 0; i < gamma.length; i += blocksize) {
@@ -220,7 +228,6 @@ public abstract class BlockCipher extends Cipher {
         }
 
         byte[] decryptInOFB(byte[] input) {
-            if (this.IV == null) throw new BlockCipherException(BlockCipherException.IV_NULL);
             byte[] gamma = new byte[BitUtil.Extend.extendToSize(input.length, blocksize)];
             byte[] STATE = this.IV.clone();
             for (int i = 0; i < gamma.length; i += blocksize) {
@@ -234,7 +241,6 @@ public abstract class BlockCipher extends Cipher {
         }
 
         byte[] encryptInCFB(byte[] input) {
-            if (this.IV == null) throw new BlockCipherException(BlockCipherException.IV_NULL);
             int len = BitUtil.Extend.extendToSize(input.length, blocksize);
             byte[] extended = new byte[len];
 
@@ -258,7 +264,6 @@ public abstract class BlockCipher extends Cipher {
         }
 
         byte[] decryptInCFB(byte[] input) {
-            if (this.IV == null) throw new BlockCipherException(BlockCipherException.IV_NULL);
             int len = BitUtil.Extend.extendToSize(input.length, blocksize);
             byte[] extended = new byte[len];
             System.arraycopy(input, 0, extended, 0, input.length);
@@ -278,13 +283,11 @@ public abstract class BlockCipher extends Cipher {
         }
 
         byte[] encryptInCTR(byte[] input) {
-            if (this.IV == null) throw new BlockCipherException(BlockCipherException.IV_NULL);
             byte[] gamma = new byte[BitUtil.Extend.extendToSize(input.length, blocksize)];
             byte[] CTR = this.IV.clone();
             for (int i = 0; i < gamma.length; i += blocksize) {
-                long[] CTR_l = BitUtil.ByteArrays.byteArrayToLongArray(CTR);
-                CTR_l[0] += 1;
-                CTR = encryptInECB(BitUtil.ByteArrays.longArrayToByteArray(CTR_l));
+                CTR = MathUtil.BigNumbersOperation.Sum(CTR,new byte[]{0,0,0,1});
+                CTR = encryptInECB(CTR);
                 System.arraycopy(CTR, 0, gamma, i, blocksize);
             }
 
@@ -292,14 +295,11 @@ public abstract class BlockCipher extends Cipher {
         }
 
         byte[] decryptInCTR(byte[] input) {
-            if (this.IV == null) throw new BlockCipherException(BlockCipherException.IV_NULL);
             byte[] gamma = new byte[BitUtil.Extend.extendToSize(input.length, blocksize)];
             byte[] CTR = this.IV.clone();
             for (int i = 0; i < gamma.length; i += blocksize) {
-                long[] CTR_l = BitUtil.ByteArrays.byteArrayToLongArray(CTR);
-                CTR_l[0] += 1;
-                if(CTR_l[0] < 0 && CTR_l.length > 1){CTR_l[0] = 0; CTR_l[1] +=1;}
-                CTR = encryptInECB(BitUtil.ByteArrays.longArrayToByteArray(CTR_l));
+                CTR = MathUtil.BigNumbersOperation.Sum(CTR,new byte[]{0,0,0,1});
+                CTR = encryptInECB(CTR);
                 System.arraycopy(CTR, 0, gamma, i, blocksize);
             }
 

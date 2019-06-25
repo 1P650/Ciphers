@@ -1,14 +1,16 @@
 package Ciphers.BlockCiphers;
 
 class REDOCII extends BlockCipher {
+    private final int[] KEY_SIZES = new int[]{8, 2240};
     private REDOCII_algorithm REDOC_A;
-    private final int[] KEY_SIZES = new int[]{8,2240};
-    REDOCII(){
+
+    REDOCII() {
         REDOC_A = new REDOCII_algorithm();
         super.algorithm = REDOC_A;
         super.KeySize = 2240;
         super.IV_Size = 10;
     }
+
     @Override
     public void setKey(byte[] key) {
         if (key == null || (key.length < KEY_SIZES[0] || key.length > KEY_SIZES[1]))
@@ -19,14 +21,15 @@ class REDOCII extends BlockCipher {
         super.algorithm = REDOC_A;
     }
 
-    private class REDOCII_algorithm extends BlockCipher.BlockCipherAlgorithm{
-        REDOCII_algorithm(){
+    private class REDOCII_algorithm extends BlockCipher.BlockCipherAlgorithm {
+        REDOCII_algorithm() {
             super.blocksize = 10;
         }
 
-        REDOCII_algorithm(byte[] key){
+        REDOCII_algorithm(byte[] key) {
             super.blocksize = 10;
         }
+
         @Override
         byte[] encryptInECB(byte[] input) {
             return new byte[0];

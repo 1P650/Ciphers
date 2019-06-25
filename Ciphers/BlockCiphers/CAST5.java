@@ -4,8 +4,8 @@ import Ciphers.Utils.BitUtil;
 import Ciphers.Utils.MathUtil;
 
 class CAST5 extends BlockCipher {
-    private CAST5_algorithm CAST5_A;
     private final int[] KEY_SIZES = new int[]{5, 16};
+    private CAST5_algorithm CAST5_A;
 
     CAST5() {
         CAST5_A = new CAST5_algorithm();
@@ -28,8 +28,10 @@ class CAST5 extends BlockCipher {
 
     private class CAST5_algorithm extends BlockCipher.BlockCipherAlgorithm {
 
+
         private int ROUNDS = 16;
         private int[] KEYS = new int[32];
+
 
         CAST5_algorithm() {
             super();
@@ -41,17 +43,14 @@ class CAST5 extends BlockCipher {
             generateKeys(key);
         }
 
-
         @Override
         byte[] encryptInECB(byte[] input) {
-            if (input.length % blocksize != 0) throw new BlockCipherException(BlockCipherException.DATA_LEN, blocksize);
-            byte[] encrypted = input.clone();
-            for (int k = 0; k < encrypted.length; k+=blocksize) {
-                byte[] chunck = new byte[blocksize];
-                System.arraycopy(encrypted, k, chunck, 0, blocksize);
-                int[] input_32 = BitUtil.ByteArrays.byteArrayToIntArray(chunck);
-                int L = input_32[0];
-                int R = input_32[1];
+            int[] encrypted = BitUtil.ByteArrays.byteArrayToIntArray(input);
+            for (int k = 0; k < encrypted.length; k += blocksize/4) {
+                int[] chunck = new int[blocksize/4];
+                System.arraycopy(encrypted, k, chunck, 0, blocksize/4);
+                int L = chunck[0];
+                int R = chunck[1];
                 for (int i = 0; i < ROUNDS; i++) {
                     int temp = R;
                     switch (i % 3) {
@@ -69,24 +68,21 @@ class CAST5 extends BlockCipher {
                             break;
                     }
                 }
-                input_32[0] = R;
-                input_32[1] = L;
-                chunck = BitUtil.ByteArrays.intArrayToByteArray(input_32);
-                System.arraycopy(chunck,0,encrypted,k,blocksize);
+                chunck[0] = R;
+                chunck[1] = L;
+                System.arraycopy(chunck, 0, encrypted, k, blocksize/4);
             }
-            return encrypted;
+            return BitUtil.ByteArrays.intArrayToByteArray(encrypted);
         }
 
         @Override
         byte[] decryptInECB(byte[] input) {
-            if (input.length % blocksize != 0) throw new BlockCipherException(BlockCipherException.DATA_LEN, blocksize);
-            byte[] decrypted = input.clone();
-            for (int k = 0; k < decrypted.length; k+=blocksize) {
-                byte[] chunck = new byte[blocksize];
-                System.arraycopy(decrypted, k, chunck, 0, blocksize);
-                int[] input_32 = BitUtil.ByteArrays.byteArrayToIntArray(chunck);
-                int L = input_32[0];
-                int R = input_32[1];
+            int [] decrypted = BitUtil.ByteArrays.byteArrayToIntArray(input);
+            for (int k = 0; k < decrypted.length; k += blocksize/4) {
+                int[] chunck = new int[blocksize/4];
+                System.arraycopy(decrypted, k, chunck, 0, blocksize/4);
+                int L = chunck[0];
+                int R = chunck[1];
                 for (int i = ROUNDS - 1; i >= 0; i--) {
                     int temp = R;
                     switch (i % 3) {
@@ -106,17 +102,14 @@ class CAST5 extends BlockCipher {
 
 
                 }
-                input_32[0] = R;
-                input_32[1] = L;
-                chunck = BitUtil.ByteArrays.intArrayToByteArray(input_32);
-                System.arraycopy(chunck,0,decrypted,k,blocksize);
+                chunck[0] = R;
+                chunck[1] = L;
+                System.arraycopy(chunck, 0, decrypted, k, blocksize/4);
             }
-            return decrypted;
+            return BitUtil.ByteArrays.intArrayToByteArray(decrypted);
         }
 
-
         private void generateKeys(byte[] key) {
-
             byte[] key_USED;
             if (key.length < 16) {
                 byte[] key_expanded = new byte[16];
@@ -179,18 +172,19 @@ class CAST5 extends BlockCipher {
 
         private int F1(int R, int Km, int Kr) {
             int I = (BitUtil.Rotation.rotateL((MathUtil.Operation.Add_32(Km, R)), Kr));
-            return MathUtil.Operation.Add_32(S4[I & 0xFF], MathUtil.Operation.Sub_32((S1[(I>>24) & 0xFF] ^ S2[(I >> 16)& 0xFF]), (S3[(I >> 8) & 0xFF])));
+            return MathUtil.Operation.Add_32(S4[I & 0xFF], MathUtil.Operation.Sub_32((S1[(I >> 24) & 0xFF] ^ S2[(I >> 16) & 0xFF]), (S3[(I >> 8) & 0xFF])));
         }
 
         private int F2(int R, int Km, int Kr) {
             int I = (BitUtil.Rotation.rotateL((Km ^ R), Kr));
-            return (S4[I & 0xFF]) ^ (MathUtil.Operation.Add_32(MathUtil.Operation.Sub_32(S1[(I>>24) & 0xFF], S2[(I >> 16)& 0xFF]), S3[(I >> 8) & 0xFF]));
+            return (S4[I & 0xFF]) ^ (MathUtil.Operation.Add_32(MathUtil.Operation.Sub_32(S1[(I >> 24) & 0xFF], S2[(I >> 16) & 0xFF]), S3[(I >> 8) & 0xFF]));
         }
 
         private int F3(int R, int Km, int Kr) {
             int I = (BitUtil.Rotation.rotateL((MathUtil.Operation.Sub_32(Km, R)), Kr));
-            return MathUtil.Operation.Sub_32((S3[(I >> 8) & 0xFF]) ^ MathUtil.Operation.Add_32(S1[(I>>24) & 0xFF], S2[(I >> 16)& 0xFF]), S4[I & 0xFF]);
+            return MathUtil.Operation.Sub_32((S3[(I >> 8) & 0xFF]) ^ MathUtil.Operation.Add_32(S1[(I >> 24) & 0xFF], S2[(I >> 16) & 0xFF]), S4[I & 0xFF]);
         }
+
 
 
         //S-boxes
@@ -228,7 +222,6 @@ class CAST5 extends BlockCipher {
                 0xBD91E046, 0x9A56456E, 0xDC39200C, 0x20C8C571, 0x962BDA1C, 0xE1E696FF, 0xB141AB08, 0x7CCA89B9,
                 0x1A69E783, 0x02CC4843, 0xA2F7C579, 0x429EF47D, 0x427B169C, 0x5AC9F049, 0xDD8F0F00, 0x5C8165BF
         };
-
         private final int[] S2 = new int[]{
                 0x1F201094, 0xEF0BA75B, 0x69E3CF7E, 0x393F4380, 0xFE61CF7A, 0xEEC5207A, 0x55889C94, 0x72FC0651,
                 0xADA7EF79, 0x4E1D7235, 0xD55A63CE, 0xDE0436BA, 0x99C430EF, 0x5F0C0794, 0x18DCDB7D, 0xA1D6EFF3,
@@ -263,7 +256,6 @@ class CAST5 extends BlockCipher {
                 0x8F5EA2B3, 0xFC184642, 0x0A036B7A, 0x4FB089BD, 0x649DA589, 0xA345415E, 0x5C038323, 0x3E5D3BB9,
                 0x43D79572, 0x7E6DD07C, 0x06DFDF1E, 0x6C6CC4EF, 0x7160A539, 0x73BFBE70, 0x83877605, 0x4523ECF1,
         };
-
         private final int[] S3 = new int[]{
                 0x8DEFC240, 0x25FA5D9F, 0xEB903DBF, 0xE810C907, 0x47607FFF, 0x369FE44B, 0x8C1FC644, 0xAECECA90,
                 0xBEB1F9BF, 0xEEFBCAEA, 0xE8CF1950, 0x51DF07AE, 0x920E8806, 0xF0AD0548, 0xE13C8D83, 0x927010D5,

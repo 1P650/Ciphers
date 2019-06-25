@@ -28,7 +28,7 @@ public class ISAAC implements RandomGenerator {
             return repeat;
         }
         for (int i = 0; i < repeat.length; i += bytes.length) {
-            System.arraycopy(bytes, 0, repeat, (i + bytes.length > repeat.length ? repeat.length - i : i), bytes.length);
+            System.arraycopy(bytes, 0, repeat, i, (i + bytes.length > repeat.length ? repeat.length - i : bytes.length));
         }
         return repeat;
 

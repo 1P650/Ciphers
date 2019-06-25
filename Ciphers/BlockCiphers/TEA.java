@@ -4,6 +4,7 @@ import Ciphers.Utils.BitUtil;
 
 
 class TEA extends BlockCipher {
+    private final int[] KEY_SIZES = new int[]{4, 56};
     private TEA_algoritm TEA_A;
 
     TEA() {
@@ -44,11 +45,8 @@ class TEA extends BlockCipher {
 
         @Override
         byte[] encryptInECB(byte[] input) {
-
-            if (input.length % 8 != 0) throw new BlockCipherException(BlockCipherException.DATA_LEN, 8);
             int[] plain_32 = BitUtil.ByteArrays.byteArrayToIntArray(input);
             for (int k = 0; k < plain_32.length - 1; k += 2) {
-
                 int L = plain_32[k];
                 int R = plain_32[k + 1];
                 int delta_e = 0;
@@ -66,9 +64,7 @@ class TEA extends BlockCipher {
 
         @Override
         byte[] decryptInECB(byte[] input) {
-            if (input.length % 8 != 0) throw new BlockCipherException(BlockCipherException.DATA_LEN, 8);
             int[] plain_32 = BitUtil.ByteArrays.byteArrayToIntArray(input);
-
             for (int k = 0; k < plain_32.length - 1; k += 2) {
                 int L = plain_32[k];
                 int R = plain_32[k + 1];

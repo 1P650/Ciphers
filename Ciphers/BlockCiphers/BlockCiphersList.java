@@ -8,13 +8,10 @@ public interface BlockCiphersList {
         return new IDEA();
     }
 
-    static BlockCipher GOST() {
-        return new GOST89();
-    }
+    static BlockCipher GOST() { return new GOST89(); }
 
-    static BlockCipher TEA() {
-        return new TEA();
-    }
+
+    static BlockCipher TEA() { return new TEA(); }
 
     static BlockCipher Cobra() {
         return new Cobra();
@@ -22,10 +19,6 @@ public interface BlockCiphersList {
 
     static BlockCipher Blowfish() {
         return new Blowfish();
-    }
-
-    static BlockCipher Threefish() {
-        return new Threefish();
     }
 
     static BlockCipher REDOCII() {
