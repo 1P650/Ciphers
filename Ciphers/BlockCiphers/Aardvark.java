@@ -61,9 +61,7 @@ public class Aardvark extends Cipher {
     @Override
     public byte[] decrypt(byte[] C) {
         int len = hashFunction.getLength();
-        System.out.println(C.length);
         byte[] C1 = new byte[len];
-
         byte[] C0 = new byte[C.length - len];
         System.arraycopy(C, 0, C1, 0, len);
         System.arraycopy(C, C1.length, C0, 0, C.length - len);
