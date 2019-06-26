@@ -83,7 +83,6 @@ class IDEA extends BlockCipher {
 
         @Override
         byte[] decryptInECB(byte[] input) {
-            if (input.length % blocksize != 0) throw new BlockCipherException(BlockCipherException.DATA_LEN, blocksize);
             byte[] decrypted = input.clone();
             for (int k = 0; k < decrypted.length; k += blocksize) {
                 byte[] chunck = new byte[blocksize];

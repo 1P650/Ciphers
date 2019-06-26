@@ -25,7 +25,120 @@ class Blowfish extends BlockCipher {
     }
 
     private class Blowfish_algorithm extends BlockCipher.BlockCipherAlgorithm {
+        Blowfish_algorithm() {
+            super();
+        }
 
+        Blowfish_algorithm(byte[] key) {
+            super();
+            generateEncryptionData(key);
+        }
+
+        @Override
+        byte[] encryptInECB(byte[] input) {
+            int[] encrypted = BitUtil.ByteArrays.byteArrayToIntArray(input);
+            for (int k = 0; k < encrypted.length; k += 2) {
+                int[] chunck = new int[2];
+                System.arraycopy(encrypted, k, chunck, 0, 2);
+                int L = chunck[0];
+                int R = chunck[1];
+                for (int i = 0; i < 16; i++) {
+                    L ^= P[i];
+                    R ^= F(L);
+
+                    int temp = R;
+                    R = L;
+                    L = temp;
+
+                }
+                int temp = R;
+                R = L;
+                L = temp;
+                R ^= P[16];
+                L ^= P[17];
+                System.arraycopy(new int[]{L, R}, 0, encrypted, k, 2);
+            }
+            return BitUtil.ByteArrays.intArrayToByteArray(encrypted);
+        }
+
+        @Override
+        byte[] decryptInECB(byte[] input) {
+            int[] decrypted = BitUtil.ByteArrays.byteArrayToIntArray(input);
+            for (int k = 0; k < decrypted.length; k += 2) {
+                int[] chunck = new int[2];
+                System.arraycopy(decrypted, k, chunck, 0, 2);
+                int L = chunck[0];
+                int R = chunck[1];
+                for (int i = 17; i > 1; i--) {
+                    L ^= P[i];
+                    R ^= F(L);
+                    int temp = R;
+                    R = L;
+                    L = temp;
+                }
+                int temp = R;
+                R = L;
+                L = temp;
+                R ^= P[1];
+                L ^= P[0];
+                System.arraycopy(new int[]{L, R}, 0, decrypted, k, 2);
+            }
+            return BitUtil.ByteArrays.intArrayToByteArray(decrypted);
+        }
+
+        private final void generateEncryptionData(byte[] key) {
+            byte[] key_72 = new byte[72];
+            for (int i = 0; i < key_72.length; i += key.length) {
+                System.arraycopy(key, 0, key_72, i, (i + key.length > key_72.length ? key_72.length - i : key.length));
+            }
+
+
+            int[] key_32 = BitUtil.ByteArrays.byteArrayToIntArray(key_72);
+
+
+            for (int i = 0; i < P.length; i++) {
+                P[i] ^= key_32[i];
+            }
+
+
+            int[] zero_64_32 = BitUtil.ByteArrays.byteArrayToIntArray(BitUtil.ByteArrays.intArrayToByteArray(new int[2]));
+            for (int i = 0; i < 18; ) {
+                zero_64_32 = BitUtil.ByteArrays.byteArrayToIntArray(encryptInECB(BitUtil.ByteArrays.intArrayToByteArray(zero_64_32)));
+                P[i] = zero_64_32[0];
+                P[i + 1] = zero_64_32[1];
+                i += 2;
+            }
+
+            for (int i = 0; i < 256; ) {
+                zero_64_32 = BitUtil.ByteArrays.byteArrayToIntArray(encryptInECB(BitUtil.ByteArrays.intArrayToByteArray(zero_64_32)));
+                S0[i] = zero_64_32[0];
+                S0[i + 1] = zero_64_32[1];
+                i += 2;
+            }
+
+            for (int i = 0; i < 256; ) {
+                zero_64_32 = BitUtil.ByteArrays.byteArrayToIntArray(encryptInECB(BitUtil.ByteArrays.intArrayToByteArray(zero_64_32)));
+                S1[i] = zero_64_32[0];
+                S1[i + 1] = zero_64_32[1];
+                i += 2;
+            }
+            for (int i = 0; i < 256; ) {
+                zero_64_32 = BitUtil.ByteArrays.byteArrayToIntArray(encryptInECB(BitUtil.ByteArrays.intArrayToByteArray(zero_64_32)));
+                S2[i] = zero_64_32[0];
+                S2[i + 1] = zero_64_32[1];
+                i += 2;
+            }
+            for (int i = 0; i < 256; ) {
+                zero_64_32 = BitUtil.ByteArrays.byteArrayToIntArray(encryptInECB(BitUtil.ByteArrays.intArrayToByteArray(zero_64_32)));
+                S3[i] = zero_64_32[0];
+                S3[i + 1] = zero_64_32[1];
+                i += 2;
+            }
+        }
+
+        private int F(int I) {
+            return (S0[I >> 24 & 0xFF] + S1[I >> 16 & 0xFF] ^ S2[I >> 8 & 0xFF]) + S3[I & 0xFF];
+        }
 
         private int[] P = new int[]{
                 0x243f6a88, 0x85a308d3, 0x13198a2e, 0x03707344, 0xa4093822, 0x299f31d0,
@@ -213,122 +326,6 @@ class Blowfish extends BlockCipher {
                 0x01c36ae4, 0xd6ebe1f9, 0x90d4f869, 0xa65cdea0, 0x3f09252d, 0xc208e69f,
                 0xb74e6132, 0xce77e25b, 0x578fdfe3, 0x3ac372e6
         };
-
-        Blowfish_algorithm() {
-            super.blocksize = 8;
-        }
-
-        Blowfish_algorithm(byte[] key) {
-            super.blocksize = 8;
-            generateEncryptionData(key);
-        }
-
-        @Override
-        byte[] encryptInECB(byte[] input) {
-            int[] encrypted = BitUtil.ByteArrays.byteArrayToIntArray(input);
-            for (int k = 0; k < encrypted.length; k += 2) {
-                int[] chunck = new int[2];
-                System.arraycopy(encrypted, k, chunck, 0, 2);
-                int L = chunck[0];
-                int R = chunck[1];
-                for (int i = 0; i < 16; i++) {
-                    L ^= P[i];
-                    R ^= F(L);
-
-                    int temp = R;
-                    R = L;
-                    L = temp;
-
-                }
-                int temp = R;
-                R = L;
-                L = temp;
-                R ^= P[16];
-                L ^= P[17];
-                System.arraycopy(new int[]{L, R}, 0, encrypted, k, 2);
-            }
-            return BitUtil.ByteArrays.intArrayToByteArray(encrypted);
-        }
-
-        @Override
-        byte[] decryptInECB(byte[] input) {
-            int[] decrypted = BitUtil.ByteArrays.byteArrayToIntArray(input);
-            for (int k = 0; k < decrypted.length; k += 2) {
-                int[] chunck = new int[2];
-                System.arraycopy(decrypted, k, chunck, 0, 2);
-                int L = chunck[0];
-                int R = chunck[1];
-                for (int i = 17; i > 1; i--) {
-                    L ^= P[i];
-                    R ^= F(L);
-                    int temp = R;
-                    R = L;
-                    L = temp;
-                }
-                int temp = R;
-                R = L;
-                L = temp;
-                R ^= P[1];
-                L ^= P[0];
-                System.arraycopy(new int[]{L, R}, 0, decrypted, k, 2);
-            }
-            return BitUtil.ByteArrays.intArrayToByteArray(decrypted);
-        }
-
-        private final void generateEncryptionData(byte[] key) {
-            byte[] key_72 = new byte[72];
-            for (int i = 0; i < key_72.length; i += key.length) {
-                System.arraycopy(key, 0, key_72, i, (i + key.length > key_72.length ? key_72.length - i : key.length));
-            }
-
-
-            int[] key_32 = BitUtil.ByteArrays.byteArrayToIntArray(key_72);
-
-
-            for (int i = 0; i < P.length; i++) {
-                P[i] ^= key_32[i];
-            }
-
-
-            int[] zero_64_32 = BitUtil.ByteArrays.byteArrayToIntArray(BitUtil.ByteArrays.intArrayToByteArray(new int[2]));
-            for (int i = 0; i < 18; ) {
-                zero_64_32 = BitUtil.ByteArrays.byteArrayToIntArray(encryptInECB(BitUtil.ByteArrays.intArrayToByteArray(zero_64_32)));
-                P[i] = zero_64_32[0];
-                P[i + 1] = zero_64_32[1];
-                i += 2;
-            }
-
-            for (int i = 0; i < 256; ) {
-                zero_64_32 = BitUtil.ByteArrays.byteArrayToIntArray(encryptInECB(BitUtil.ByteArrays.intArrayToByteArray(zero_64_32)));
-                S0[i] = zero_64_32[0];
-                S0[i + 1] = zero_64_32[1];
-                i += 2;
-            }
-
-            for (int i = 0; i < 256; ) {
-                zero_64_32 = BitUtil.ByteArrays.byteArrayToIntArray(encryptInECB(BitUtil.ByteArrays.intArrayToByteArray(zero_64_32)));
-                S1[i] = zero_64_32[0];
-                S1[i + 1] = zero_64_32[1];
-                i += 2;
-            }
-            for (int i = 0; i < 256; ) {
-                zero_64_32 = BitUtil.ByteArrays.byteArrayToIntArray(encryptInECB(BitUtil.ByteArrays.intArrayToByteArray(zero_64_32)));
-                S2[i] = zero_64_32[0];
-                S2[i + 1] = zero_64_32[1];
-                i += 2;
-            }
-            for (int i = 0; i < 256; ) {
-                zero_64_32 = BitUtil.ByteArrays.byteArrayToIntArray(encryptInECB(BitUtil.ByteArrays.intArrayToByteArray(zero_64_32)));
-                S3[i] = zero_64_32[0];
-                S3[i + 1] = zero_64_32[1];
-                i += 2;
-            }
-        }
-
-        private int F(int I) {
-            return (S0[I >> 24 & 0xFF] + S1[I >> 16 & 0xFF] ^ S2[I >> 8 & 0xFF]) + S3[I & 0xFF];
-        }
-
 
     }
 }
