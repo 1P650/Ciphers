@@ -25,11 +25,13 @@ Just implementation of different ciphers/hash functions/others.
 
 ### Applied utils
 * Cascade encryption (CipherCascade)
+* File Encryption (FileEncryptor)
 ***
 
 ### Utils
 * BitUtil (bit rotation, type conversion, hex&binary print,more)
 * AlgorithmUtil (index of element, reverse array, reverse matrix)
 * MathUtil (modulo operations, more will be soon)
+* FileUtil (java.io.File; Read,Write,Hash)
 
 
