@@ -13,6 +13,15 @@ Just implementation of different ciphers/hash functions/others.
 * CAST-128 (CAST5) (ECB mode, CBC mode, OFB mode, CFB mode, CTR mode)
 * CAST-256 (CAST6) (ECB mode, CBC mode, OFB mode, CFB mode, CTR mode)
 * Cobra (Cobra128) (ECB mode, CBC mode, OFB mode, CFB mode, CTR mode)
+
+##### Usage 
+'''java
+BlockCipher cipher = BlockCipher.getInstance(BlockCipherList.*NAME*, BlockCipher.*Mode*);
+cipher.setKey( *byte [] key*);
+cipher.setIV( *byte [] IV*);
+*encrypted byte array* = cipher.encrypt(*plaintext*);
+*decrypted byte array* = cipher.decrypt(*ciphertext*);
+
 #### Stream Ciphers
 * Rabbit
 * HC-256
@@ -41,5 +50,7 @@ Just implementation of different ciphers/hash functions/others.
 * AlgorithmUtil (index of element, reverse array, reverse matrix)
 * MathUtil (modulo operations, more will be soon)
 * FileUtil (java.io.File; Read,Write,Hash)
+
+
 
 
