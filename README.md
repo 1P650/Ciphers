@@ -16,11 +16,11 @@ Just implementation of different ciphers/hash functions/others.
 
 ##### Usage 
 ```java
-BlockCipher cipher = BlockCipher.getInstance(BlockCipherList.*NAME*, BlockCipher.*Mode*);
-cipher.setKey( *byte [] key*);
-cipher.setIV( *byte [] IV*);
-*encrypted byte array* = cipher.encrypt(*plaintext*);
-*decrypted byte array* = cipher.decrypt(*ciphertext*);
+BlockCipher cipher = BlockCipher.getInstance(BlockCipherList.name, BlockCipher.mode);
+cipher.setKey(key);
+cipher.setIV(IV);
+byte[] enc = cipher.encrypt(plain);
+byte[] dec = cipher.decrypt(enc);
 ```
 
 #### Stream Ciphers
