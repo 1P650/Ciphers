@@ -13,11 +13,11 @@ Just implementation of different ciphers/hash functions/others.
 * CAST-128 (CAST5) (ECB mode, CBC mode, OFB mode, CFB mode, CTR mode)
 * CAST-256 (CAST6) (ECB mode, CBC mode, OFB mode, CFB mode, CTR mode)
 * Cobra (Cobra128) (ECB mode, CBC mode, OFB mode, CFB mode, CTR mode)
-#### Stream Cipher
+#### Stream Ciphers
 * Rabbit
 * HC-256
 * Trivium
-#### Primitives 
+#### Primitive Ciphers
 * ROTn or Caesar
 * One-time XOR pad or Vernam
 * Vigenere
