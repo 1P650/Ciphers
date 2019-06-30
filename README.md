@@ -15,12 +15,13 @@ Just implementation of different ciphers/hash functions/others.
 * Cobra (Cobra128) (ECB mode, CBC mode, OFB mode, CFB mode, CTR mode)
 
 ##### Usage 
-'''java
+```java
 BlockCipher cipher = BlockCipher.getInstance(BlockCipherList.*NAME*, BlockCipher.*Mode*);
 cipher.setKey( *byte [] key*);
 cipher.setIV( *byte [] IV*);
 *encrypted byte array* = cipher.encrypt(*plaintext*);
 *decrypted byte array* = cipher.decrypt(*ciphertext*);
+```
 
 #### Stream Ciphers
 * Rabbit
