@@ -17,6 +17,10 @@ public abstract class BlockCipher extends Cipher {
     byte MODE_SELECTED = 0;
     BlockCipherAlgorithm algorithm;
 
+    protected BlockCipher(){
+
+    }
+
 
     public static BlockCipher getInstance(BlockCipher blockCipher) {
         return blockCipher;

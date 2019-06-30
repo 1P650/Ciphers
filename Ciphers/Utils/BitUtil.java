@@ -194,18 +194,6 @@ public final class BitUtil {
             return s;
         }
 
-        public static char[] byteArrayToCharArray(byte[] b) {
-            char[] s = new char[b.length >> 1];
-
-
-            for (int i = 0, j = 0; i < b.length; i += 2, j++) {
-                byte[] chunk = new byte[2];
-                System.arraycopy(b, i, chunk, 0, chunk.length);
-                s[j] = new String(chunk).toCharArray()[0];
-
-            }
-            return s;
-        }
 
         public static byte[] shortArrayToByteArray(short[] s) {
             byte[] b = new byte[s.length << 1];
@@ -293,36 +281,33 @@ public final class BitUtil {
         public static void printBinary(byte... input) {
             java.io.PrintStream stream = new java.io.PrintStream(System.out);
             for (byte b : input) {
-                printHex(Binary.toBinaryOctets(b));
+                printHex(Binary.byteToBinary(b));
             }
             stream.print("\n");
         }
 
 
         public static void printBinary(short... input) {
-            byte[] input_b = ByteArrays.shortArrayToByteArray(input);
             java.io.PrintStream stream = new java.io.PrintStream(System.out);
-            for (byte b : input_b) {
-                printHex(Binary.toBinaryOctets(b));
+            for (short b : input) {
+                printHex(Binary.shortToBinary(b));
             }
             stream.print("\n");
         }
 
 
         public static void printBinary(int... input) {
-            byte[] input_b = ByteArrays.intArrayToByteArray(input);
             java.io.PrintStream stream = new java.io.PrintStream(System.out);
-            for (byte b : input_b) {
-                printHex(Binary.toBinaryOctets(b));
+            for (int b : input) {
+                printHex(Binary.intToBinary(b));
             }
             stream.print("\n");
         }
 
         public static void printBinary(long... input) {
-            byte[] input_b = ByteArrays.longArrayToByteArray(input);
             java.io.PrintStream stream = new java.io.PrintStream(System.out);
-            for (byte b : input_b) {
-                printHex(Binary.toBinaryOctets(b));
+            for (long b : input) {
+                printHex(Binary.longToBinary(b));
             }
             stream.print("\n");
         }
@@ -452,7 +437,7 @@ public final class BitUtil {
         }
 
         public static byte[] longToBinary(long l) {
-            long mask = 0b1000000000000000000000000000000000000000000000000000000000000000L;
+            long mask = 0x8000000000000000L;
             byte[] ret = new byte[64];
             for (int i = 63, j = 0; i >= 0; i--, j++) {
                 ret[j] = (byte) (((l & mask) >>> i));
@@ -463,24 +448,103 @@ public final class BitUtil {
 
 
         public static long binaryToLong(byte[] bin) {
-            byte[] l_b = new byte[8];
-            byte[] chuck = new byte[8];
-            byte j = 0;
-            for (int i = 0; i < bin.length; i += 8) {
-                chuck[i % 8] = bin[i];
-                chuck[(i + 1) % 8] = bin[i + 1];
-                chuck[(i + 2) % 8] = bin[i + 2];
-                chuck[(i + 3) % 8] = bin[i + 3];
-                chuck[(i + 4) % 8] = bin[i + 4];
-                chuck[(i + 5) % 8] = bin[i + 5];
-                chuck[(i + 6) % 8] = bin[i + 6];
-                chuck[(i + 7) % 8] = bin[i + 7];
-                byte a = fromBinaryOctets(chuck);
-                chuck = new byte[8];
-                l_b[j++] = a;
+            long l = 0;
+            byte shift = 63;
+            int f = 0;
+            while (bin[f] != 1 && f != bin.length-1) f++;
+            if(f==0 && bin[0]!=1) return 0;
+            byte[] bin_clear = new byte[bin.length - f];
+            System.arraycopy(bin, f, bin_clear, 0, bin.length - f);
+            bin = bin_clear;
+            for (byte b : bin) {
+                l |= ((long) (b) << shift--);
             }
-            return ByteArrays.byteArrayToLong(l_b);
+            l = Rotation.rotateL(l,bin.length);
+            return l;
+
         }
+
+        public static byte[] intToBinary(int l) {
+            int mask = 0x80000000;
+            byte[] ret = new byte[32];
+            for (int i = 31, j = 0; i >= 0; i--, j++) {
+                ret[j] = (byte) (((l & mask) >>> i));
+                mask >>>= 1;
+            }
+            return ret;
+        }
+
+        public static int binatyToInt(byte[] bin){
+            int i = 0;
+            byte shift = 31;
+            int f = 0;
+            while (bin[f] != 1 && f != bin.length-1) f++;
+            if(f==0 && bin[0]!=1) return 0;
+            byte[] bin_clear = new byte[bin.length - f];
+            System.arraycopy(bin, f, bin_clear, 0, bin.length - f);
+            bin = bin_clear;
+            for (byte b : bin) {
+                i |= ((int) (b) << shift--);
+            }
+            i = Rotation.rotateL(i,bin.length);
+            return i;
+        }
+
+        public static byte[] shortToBinary(short s) {
+            int mask = 0x8000;
+            byte[] ret = new byte[16];
+            for (int i = 15, j = 0; i >= 0; i--, j++) {
+                ret[j] = (byte) (((s & mask) >>> i));
+                mask >>>= 1;
+            }
+            return ret;
+        }
+
+        public static short binaryToShort(byte[] bin){
+            short s = 0;
+            byte shift = 15;
+            int f = 0;
+            while (bin[f] != 1 && f != bin.length-1) f++;
+            if(f==0 && bin[0] != 1) return 0;
+            if(bin[0] != 1) f--;
+            byte[] bin_clear = new byte[bin.length - f];
+            System.arraycopy(bin, f, bin_clear, 0, bin.length - f);
+            bin = bin_clear;
+            for (byte b : bin) {
+                s |= ((short) (b) << shift--);
+            }
+            s = Rotation.rotateL(s,bin.length);
+            return s;
+        }
+
+        public static byte[] byteToBinary(byte b) {
+            int mask = 0x80;
+            byte[] ret = new byte[8];
+            for (int i = 7, j = 0; i >= 0; i--, j++) {
+                ret[j] = (byte) (((b & mask) >>> i));
+                mask >>>= 1;
+            }
+            return ret;
+        }
+
+        public static byte binaryToByte(byte[] bin){
+            byte b = 0;
+            byte shift = 7;
+            int f = 0;
+            while (bin[f] != 1 && f != bin.length-1) f++;
+            if(f==0 && bin[0] != 1) return 0;
+            else if(bin[0] == 1) f =0;
+            byte[] bin_clear = new byte[bin.length - f];
+            System.arraycopy(bin, f, bin_clear, 0, bin.length - f);
+            bin = bin_clear;
+            for (byte b_i : bin) {
+                b |= ((b_i) << shift--);
+            }
+
+            b = Rotation.rotateL(b,bin.length);
+            return b;
+        }
+
     }
 
     public static class Extend {

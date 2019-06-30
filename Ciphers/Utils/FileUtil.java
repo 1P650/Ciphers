@@ -81,8 +81,8 @@ public final class FileUtil {
         public static boolean compare(java.io.File file1, java.io.File file2) {
             SHA sha = new SHA512();
 
-            byte[] file1_sum =FileEncryptor.hash_summ(file1,sha);
-            byte[] file2_sum =FileEncryptor.hash_summ(file2,sha);
+            byte[] file1_sum =FileEncryptor.hashOfFile(file1,sha);
+            byte[] file2_sum =FileEncryptor.hashOfFile(file2,sha);
             return compare(file1_sum,file2_sum);
         }
 
