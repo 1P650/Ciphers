@@ -68,10 +68,38 @@ byte[] hash = function.process(plain);
 ### Pseudorandom number generators
 * Simple linear congruential PRNG
 * ISAAC CSPRNG (not correctly implemented but still)
+
+
+##### Usage
+```java
+RandomGenerator generator = new RandomGeneratorName();
+generator.setSeed(seed);
+byte[] randomBytes = generator.nextBytes(new byte[length]);
+generator.reset();
+```
+
 ***
 
 ### Applied utils
 * Cascade encryption (CipherCascade)
+
+##### Usage
+```java
+ CipherCascade cascade = new CipherCascade(listOfCiphers);
+        or
+        CipherCascade cascade = new CipherCascade();        
+        cascade.add(cipherName)
+        cascade.addTo(0,cipherName);
+        cascade.remove(0);
+        cascade.get(0);
+        cascade.removeFirst();
+        cascade.removeLast();
+        cascade.clear();
+        byte[] enc = cascade.encryptByCascade(plain);
+        byte[] dec = cascade.decryptByCascade(enc);
+        cascade.printState();
+```
+
 * File Encryption (FileEncryptor)
 ***
 
