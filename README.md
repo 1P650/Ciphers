@@ -29,7 +29,6 @@ byte[] dec = cipher.decrypt(enc);
 #### Stream Ciphers
 * Rabbit
 * HC-256
-* Trivium
 
 ##### Usage 
 ```java
