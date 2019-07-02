@@ -36,7 +36,7 @@ StreamCipher cipher = StreamCipher.getInstance(StreamCiphersList.name);
 cipher.setKey(KEY);
 cipher.setIV(IV);
 byte[] enc = cipher.encrypt(plain);
-byte[] dec = cipher.decrypt(enc
+byte[] dec = cipher.decrypt(enc);
 ```
 
 #### Primitive Ciphers
@@ -49,7 +49,7 @@ byte[] dec = cipher.decrypt(enc
 Cipher cipher = new Caesar();
 cipher.setKey(10);
 byte[] enc = cipher.encrypt(plain);
-byte[] dec = cipher.decrypt(enc
+byte[] dec = cipher.decrypt(enc);
 ```
 
 ***
