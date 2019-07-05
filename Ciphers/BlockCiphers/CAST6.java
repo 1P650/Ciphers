@@ -68,13 +68,13 @@ class CAST6 extends BlockCipher {
                     Tm[j][i] = Cm;
                     Cm = MathUtil.Operation.Add_32(Cm, Mm);
                     Tr[j][i] = Cr;
-                    Cr = (MathUtil.Operation.Add_32(Cr, Mm));
+                    Cr = (Cr + Mr) & 0x1f;
                 }
             }
 
             for (int i = 0; i < 12; i++) {
                 w(KEY_32, Tm, Tr, 2 * i);
-                w(KEY_32, Tm, Tr, 2 * i + 1);
+                w(KEY_32, Tm, Tr, (2 * i) + 1);
                 Kr[i][0] = KEY_32[0] & 0x1f;
                 Kr[i][1] = KEY_32[2] & 0x1f;
                 Kr[i][2] = KEY_32[4] & 0x1f;
@@ -89,28 +89,30 @@ class CAST6 extends BlockCipher {
         }
 
         private void w(int[] K, int[][] Tm, int[][] Tr, int i) {
-            K[6] = K[6] ^ F1(K[7], Tr[0][i], Tm[0][i]);
-            K[5] = K[5] ^ F2(K[6], Tr[1][i], Tm[1][i]);
-            K[4] = K[4] ^ F3(K[5], Tr[2][i], Tm[2][i]);
-            K[3] = K[3] ^ F1(K[4], Tr[3][i], Tm[3][i]);
-            K[2] = K[2] ^ F2(K[3], Tr[4][i], Tm[4][i]);
-            K[1] = K[1] ^ F3(K[2], Tr[5][i], Tm[5][i]);
-            K[0] = K[0] ^ F1(K[1], Tr[6][i], Tm[6][i]);
-            K[7] = K[7] ^ F2(K[0], Tr[7][i], Tm[7][i]);
+            K[6] = K[6] ^ F1(K[7], Tm[0][i], Tr[0][i]);
+            K[5] = K[5] ^ F2(K[6], Tm[1][i], Tr[1][i]);
+            K[4] = K[4] ^ F3(K[5], Tm[2][i], Tr[2][i]);
+            K[3] = K[3] ^ F1(K[4], Tm[3][i], Tr[3][i]);
+            K[2] = K[2] ^ F2(K[3], Tm[4][i], Tr[4][i]);
+            K[1] = K[1] ^ F3(K[2], Tm[5][i], Tr[5][i]);
+            K[0] = K[0] ^ F1(K[1], Tm[6][i], Tr[6][i]);
+            K[7] = K[7] ^ F2(K[0], Tm[7][i], Tr[7][i]);
 
         }
 
         @Override
         byte[] encryptInECB(byte[] input) {
-            int [] encrypted = BitUtil.ByteArrays.byteArrayToIntArray(input);
-            for (int k = 0; k < encrypted.length; k += blocksize/4) {
-                int[] chunck = new int[blocksize/4];
+            int[] encrypted = BitUtil.ByteArrays.byteArrayToIntArray(input);
+            for (int k = 0; k < encrypted.length; k += blocksize / 4) {
+                int[] chunck = new int[blocksize / 4];
                 System.arraycopy(encrypted, k, chunck, 0, chunck.length);
                 for (int i = 0; i < 6; i++)
                     Qi(chunck, Km, Kr, i);
+
                 for (int i = 6; i < 12; i++)
                     QBARi(chunck, Km, Kr, i);
-                System.arraycopy(chunck, 0, encrypted, k, blocksize/4);
+
+                System.arraycopy(chunck, 0, encrypted, k, blocksize / 4);
 
             }
             return BitUtil.ByteArrays.intArrayToByteArray(encrypted);
@@ -119,31 +121,31 @@ class CAST6 extends BlockCipher {
         @Override
         byte[] decryptInECB(byte[] input) {
             int[] decrypted = BitUtil.ByteArrays.byteArrayToIntArray(input);
-            for (int k = 0; k < decrypted.length; k += blocksize/4) {
-                int[] chunck = new int[blocksize/4];
+            for (int k = 0; k < decrypted.length; k += blocksize / 4) {
+                int[] chunck = new int[blocksize / 4];
                 System.arraycopy(decrypted, k, chunck, 0, chunck.length);
                 for (int i = 0; i < 6; i++)
                     Qi(chunck, Km, Kr, 11 - i);
                 for (int i = 6; i < 12; i++)
                     QBARi(chunck, Km, Kr, 11 - i);
-                System.arraycopy(chunck, 0, decrypted, k, blocksize/4);
+                System.arraycopy(chunck, 0, decrypted, k, blocksize / 4);
 
             }
             return BitUtil.ByteArrays.intArrayToByteArray(decrypted);
         }
 
         private void Qi(int[] BETA, int[][] Km, int[][] Kr, int i) {
-            BETA[2] = BETA[2] ^ F1(BETA[3], Kr[i][0], Km[i][0]);
-            BETA[1] = BETA[1] ^ F2(BETA[2], Kr[i][1], Km[i][1]);
-            BETA[0] = BETA[0] ^ F3(BETA[1], Kr[i][2], Km[i][2]);
-            BETA[3] = BETA[3] ^ F1(BETA[0], Kr[i][3], Km[i][3]);
+            BETA[2] = BETA[2] ^ F1(BETA[3], Km[i][0], Kr[i][0]);
+            BETA[1] = BETA[1] ^ F2(BETA[2], Km[i][1], Kr[i][1]);
+            BETA[0] = BETA[0] ^ F3(BETA[1], Km[i][2], Kr[i][2]);
+            BETA[3] = BETA[3] ^ F1(BETA[0], Km[i][3], Kr[i][3]);
         }
 
         private void QBARi(int[] BETA, int[][] Km, int[][] Kr, int i) {
-            BETA[3] = BETA[3] ^ F1(BETA[0], Kr[i][3], Km[i][3]);
-            BETA[0] = BETA[0] ^ F3(BETA[1], Kr[i][2], Km[i][2]);
-            BETA[1] = BETA[1] ^ F2(BETA[2], Kr[i][1], Km[i][1]);
-            BETA[2] = BETA[2] ^ F1(BETA[3], Kr[i][0], Km[i][0]);
+            BETA[3] = BETA[3] ^ F1(BETA[0], Km[i][3], Kr[i][3]);
+            BETA[0] = BETA[0] ^ F3(BETA[1], Km[i][2], Kr[i][2]);
+            BETA[1] = BETA[1] ^ F2(BETA[2], Km[i][1], Kr[i][1]);
+            BETA[2] = BETA[2] ^ F1(BETA[3], Km[i][0], Kr[i][0]);
         }
 
         private int F1(int R, int Km, int Kr) {
@@ -160,7 +162,6 @@ class CAST6 extends BlockCipher {
             int I = (BitUtil.Rotation.rotateL((MathUtil.Operation.Sub_32(Km, R)), Kr));
             return MathUtil.Operation.Sub_32((S3[(I >> 8) & 0xFF]) ^ MathUtil.Operation.Add_32(S1[(I >> 24) & 0xFF], S2[(I >> 16) & 0xFF]), S4[I & 0xFF]);
         }
-
 
 
         //S-boxes
