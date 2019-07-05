@@ -1,7 +1,7 @@
 # Ciphers
 
 
-Just implementation of different ciphers/hash functions/others.
+Just implementation of different ciphers/hash functions/others. Fully on Java.
 
 
 #### WARNING: Some of them might be not correctly implemented.
