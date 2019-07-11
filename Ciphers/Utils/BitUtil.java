@@ -552,6 +552,10 @@ public final class BitUtil {
             if (variable % size == 0) return variable;
             return (variable - (variable % size) + size);
         }
+
+        public static int narrowToSize(int variable, int size){
+            return extendToSize(variable,size) - size >= 0 ?extendToSize(variable,size) - size:0 ;
+        }
     }
 
 

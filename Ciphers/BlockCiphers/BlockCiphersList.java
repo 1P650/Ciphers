@@ -21,9 +21,7 @@ public interface BlockCiphersList {
         return new Blowfish();
     }
 
-    static BlockCipher REDOCII() {
-        return new REDOCII();
-    }
+    static BlockCipher REDOC_II(){return new REDOCII();}
 
     static BlockCipher CAST5() {
         return new CAST5();
