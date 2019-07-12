@@ -16,6 +16,7 @@ Just implementation of different ciphers/hash functions/others. Fully on Java.
 * CAST-128 (CAST5) (ECB mode, CBC mode, OFB mode, CFB mode, CTR mode)
 * CAST-256 (CAST6) (ECB mode, CBC mode, OFB mode, CFB mode, CTR mode)
 * Cobra (Cobra128) (ECB mode, CBC mode, OFB mode, CFB mode, CTR mode)
+* REDOC-II (ECB mode, CBC mode, OFB mode, CFB mode, CTR mode)
 
 ##### Usage 
 ```java
