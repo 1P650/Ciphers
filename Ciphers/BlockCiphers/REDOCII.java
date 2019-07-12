@@ -1,6 +1,7 @@
 package Ciphers.BlockCiphers;
 
 import Ciphers.Utils.AlgorithmUtil;
+import Ciphers.Utils.BitUtil;
 
 import java.util.Arrays;
 
@@ -29,8 +30,6 @@ class REDOCII extends BlockCipher {
     }
 
     private class REDOCII_algorithm extends BlockCipher.BlockCipherAlgorithm {
-        private final int ROUNDS = 10;
-
         private byte[][] KEY_TABLE = new byte[128][10];
         private byte[][] MASK_TABLE = new byte[4][10];
 
@@ -41,6 +40,7 @@ class REDOCII extends BlockCipher {
 
         REDOCII_algorithm(byte[] key) {
             super.blocksize = 10;
+            if(this.IV!=null) key = BitUtil.Operation.XOR(key,IV);
             generateKeyTable(key);
             generateMaskTable();
 
@@ -74,39 +74,66 @@ class REDOCII extends BlockCipher {
 
         @Override
         byte[] encryptInECB(byte[] input) {
-            input = new byte[]{104, 101, 108, 108, 111, 32, 116, 104, 101, 114};
-            for (int R = 0; R < 1; R++) {
-             //   int R_1 = (R == 9 ? R : (R + 1));
-                int R_1 = R+1;
-                int sum = 0;
-                for (byte add : input) {
-                    sum += add;
-                }
-                sum &= 0x7f;
-                int PERMUTATION_INDEX = (MASK_TABLE[0][R] ^ sum) & 0x7f;
-                input = PERMUTATE_BLOCK(input, PERMUTATION_INDEX);
-                byte KEY = (byte) ((MASK_TABLE[1][R] ^ input[R]) & 0x7f);
-                input = KEY_ADDITION(input, KEY, R);
-                KEY = (byte) ((MASK_TABLE[1][R] ^ input[R_1]) & 0x7f);
-                input = KEY_ADDITION(input, KEY, R_1);
+            byte[] encrypted = input.clone();
+            for (int k = 0; k < encrypted.length; k+=10) {
+                byte[] BLOCK = new byte[10];
+                System.arraycopy(encrypted,k,BLOCK,0,10);
+                for (int R = 0; R < 10; R++) {
+                    int R_1 = (R == 9 ? R : (R + 1));
+                    int sum = 0;
+                    for (byte add : BLOCK) {
+                        sum += add;
+                    }
+                    sum &= 0x7f;
+                    int PERMUTATION_INDEX = (MASK_TABLE[0][R] ^ sum) & 0x7f;
+                    BLOCK = PERMUTATE_BLOCK(BLOCK, PERMUTATION_INDEX);
+                    byte KEY = (byte) ((MASK_TABLE[1][R] ^ BLOCK[R]) & 0x7f);
+                    BLOCK = KEY_ADDITION(BLOCK, KEY, R);
+                    KEY = (byte) ((MASK_TABLE[1][R] ^ BLOCK[R_1]) & 0x7f);
+                    BLOCK = KEY_ADDITION(BLOCK, KEY, R_1);
 
-                input = ENCLAVE_PROCESS(input, MASK_TABLE[2][R] & 0x1f);
-                byte SUB_INDEX = (byte) ((MASK_TABLE[3][R] ^ input[R]) & 0xf);
-                input = SUBSTITUDE_BLOCK(input, SUB_INDEX, R);
-                SUB_INDEX = (byte) ((MASK_TABLE[3][R] ^ input[R_1]) & 0xf);
-                input = SUBSTITUDE_BLOCK(input, SUB_INDEX, R_1);
+                    BLOCK = ENCLAVE_PROCESS(BLOCK, MASK_TABLE[2][R] & 0x1f);
+                    byte SUB_INDEX = (byte) ((MASK_TABLE[3][R] ^ BLOCK[R]) & 0xf);
+                    BLOCK = SUBSTITUDE_BLOCK(BLOCK, SUB_INDEX, R);
+                    SUB_INDEX = (byte) ((MASK_TABLE[3][R] ^ BLOCK[R_1]) & 0xf);
+                    BLOCK = SUBSTITUDE_BLOCK(BLOCK, SUB_INDEX, R_1);
+                }
+                System.arraycopy(BLOCK,0,encrypted,k,10);
             }
-            System.out.println(Arrays.toString(input));
-            return input;
+            return encrypted;
+
         }
 
         @Override
         byte[] decryptInECB(byte[] input) {
-            input = new byte[]{103, 60, 82, 74, 18, 38, 11, 49, 50, 110};
-            for (int R = 0; R < 1; R++) {
+            byte[] decrypted = input.clone();
+            for (int k = 0; k < decrypted.length; k+=10) {
+                byte[] BLOCK = new byte[10];
+                System.arraycopy(decrypted, k, BLOCK, 0, 10);
+                for (int R = 9; R >= 0; R--) {
+                    int R_1 = R == 9 ? R : R + 1;
+                    byte SUB_INDEX = (byte) ((MASK_TABLE[3][R] ^ BLOCK[R_1]) & 0xf);
+                    BLOCK = INVERSE_SUBSTITUDE_BLOCK(BLOCK, SUB_INDEX, R_1);
+                    SUB_INDEX = (byte) ((MASK_TABLE[3][R] ^ BLOCK[R]) & 0xf);
+                    BLOCK = INVERSE_SUBSTITUDE_BLOCK(BLOCK, SUB_INDEX, R);
 
+                    BLOCK = INVERSE_ENCLAVE_PROCESS(BLOCK, MASK_TABLE[2][R] & 0x1f);
+
+                    byte KEY = (byte) ((MASK_TABLE[1][R] ^ BLOCK[R_1]) & 0x7f);
+                    BLOCK = KEY_ADDITION(BLOCK, KEY, R_1);
+                    KEY = (byte) ((MASK_TABLE[1][R] ^ BLOCK[R]) & 0x7f);
+                    BLOCK = KEY_ADDITION(BLOCK, KEY, R);
+                    int sum = 0;
+                    for (byte add : BLOCK) {
+                        sum += add;
+                    }
+                    sum &= 0x7f;
+                    int PERMUTATION_INDEX = (MASK_TABLE[0][R] ^ sum) & 0x7f;
+                    BLOCK = INVERSE_PERMUTATE_BLOCK(BLOCK, PERMUTATION_INDEX);
+                }
+                System.arraycopy(BLOCK,0,decrypted,k,10);
             }
-            return new byte[0];
+            return decrypted;
         }
 
         private byte[] ENCLAVE_PROCESS(byte[] BLOCK, int ENCLAVE_TABLE_NUM) {
@@ -180,11 +207,6 @@ class REDOCII extends BlockCipher {
             return BLOCK;
         }
 
-        private byte[] INVERSE_SUBSTITUDE_BLOCK(byte[] BLOCK, int INDEX) {
-            for (int i = 0; i < BLOCK.length; i++)  BLOCK[i] = (byte) (AlgorithmUtil.indexOfElement(SUBSTITION_TABLE[INDEX],BLOCK[i]) & 0x7f);
-            return BLOCK;
-        }
-
         private byte[] INVERSE_SUBSTITUDE_BLOCK(byte[] BLOCK, int INDEX, int R) {
             byte save = BLOCK[R];
             for (int i = 0; i < BLOCK.length; i++)  BLOCK[i] = (byte) (AlgorithmUtil.indexOfElement(SUBSTITION_TABLE[INDEX],BLOCK[i]) & 0x7f);
@@ -199,13 +221,32 @@ class REDOCII extends BlockCipher {
         }
 
         private byte[] INVERSE_ENCLAVE_PROCESS(byte[] BLOCK, int ENCLAVE_TABLE_NUM){
-            return null;
+            byte[] L = new byte[5], R = new byte[5];
+            System.arraycopy(BLOCK, 0, L, 0, 5);
+            System.arraycopy(BLOCK, 5, R, 0, 5);
+            int ENCLAVE_START = ENCLAVE_TABLE_NUM * 4;
+            byte[] LxR = BitUtil.Operation.XOR(L,R);
+            L = INVERSE_AUTOCLAVE(L, ENCLAVE_TABLE[ENCLAVE_START+3]);
+            L = INVERSE_AUTOCLAVE(L, ENCLAVE_TABLE[ENCLAVE_START+2]);
+            L = BitUtil.Operation.XOR(L,LxR);
+            LxR = INVERSE_AUTOCLAVE(LxR,ENCLAVE_TABLE[ENCLAVE_START+1]);
+            LxR = INVERSE_AUTOCLAVE(LxR,ENCLAVE_TABLE[ENCLAVE_START]);
+            byte[] D = new byte[10];
+            System.arraycopy(L, 0, D, 0, 5);
+            System.arraycopy(LxR, 0, D, 5, 5);
+            return D;
         }
 
         private byte[] INVERSE_AUTOCLAVE(byte [] BLOCK, byte[][] ENCLAVE_CURRENT){
-            return null;
+            int j = 4;
+            for (int i = 0; i<5; i++) {
+                byte[] chang_a = new byte[]{(byte) (ENCLAVE_CURRENT[0][j] - 1), (byte) (ENCLAVE_CURRENT[1][j] - 1), (byte) (ENCLAVE_CURRENT[2][j] - 1)};
+                byte chang_cur = chang_a[0];
+                BLOCK[chang_cur] = (byte) ((BLOCK[chang_a[0]] - BLOCK[chang_a[1]] - BLOCK[chang_a[2]]) & 0x7f);
+                j--;
+            }
+            return BLOCK;
         }
-
 
         private final byte[][] PERMUTATION_TABLE = new byte[][]{
                 {1, 6, 7, 9, 10, 2, 5, 8, 3, 4},
