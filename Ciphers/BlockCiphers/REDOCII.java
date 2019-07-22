@@ -41,13 +41,13 @@ class REDOCII extends BlockCipher {
         REDOCII_algorithm(byte[] key) {
             super.blocksize = 10;
             if(this.IV!=null) key = BitUtil.Operation.XOR(key,IV);
+            key = CUSTOM_EXPAND_KEY(key);
             generateKeyTable(key);
             generateMaskTable();
 
         }
 
         private void generateKeyTable(byte[] key) {
-            key = new byte[]{27, 115, 21, 1, 12, 41, 2, 92, 17, 81};
             KEY_TABLE[0] = KEY_STEP(key);
             for (int k = 1; k < KEY_TABLE.length; k++) {
                 KEY_TABLE[k] = KEY_STEP(KEY_TABLE[k - 1]);
@@ -246,6 +246,27 @@ class REDOCII extends BlockCipher {
                 j--;
             }
             return BLOCK;
+        }
+
+        private byte[] CUSTOM_EXPAND_KEY(byte[] key){
+            if(key.length == 10) return key;
+            byte[] key_e = new byte[BitUtil.Extend.extendToSize(key.length,10)];
+            System.arraycopy(key,0,key_e,0,key.length);
+            byte[] retq = new byte[10];
+            System.arraycopy(key_e,0,retq,0,10);
+            if(key_e.length == 10) return retq;
+            for (int i = 10; i < key_e.length; i+=10) {
+                byte[] key_chunck = new byte[10];
+                System.arraycopy(key_e,i,key_chunck,0,10);
+                retq = BitUtil.Operation.XOR(retq,key_chunck);
+            }
+
+            for (int i = 0; i < 4; i++) {
+                retq = KEY_STEP(retq);
+                retq = ENCLAVE_PROCESS(retq, i);
+            }
+
+            return retq;
         }
 
         private final byte[][] PERMUTATION_TABLE = new byte[][]{
