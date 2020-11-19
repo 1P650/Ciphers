@@ -10,7 +10,7 @@ import java.util.ArrayList;
  * This class supports encryption/decryption with all kinds of symmetric ciphers - from block ciphers to Caesar and Vigenere.
  * WARNING:recommended to use Block Encryption Algorithms in encryption mode other than ECB (due to different blocksizes).
  * @see Ciphers.BlockCiphers.BlockCipher
- * @author Israel Nickerson aka Jewpigeon
+ * @author Israel Nickerson (Jewpigeon)
  * @see Cipher
  * @version 1.0
  */
