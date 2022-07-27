@@ -9,8 +9,7 @@ import Ciphers.Utils.FileUtil;
  * FileEncryptor class.
  * Implementation of a utility for encrypting and decrypting files.
  * Uses java.io.File as a file class. Uses FileUtil for reading,writing,and file operations.
- * Final class with static methods. Yeap, another WEPUTEVERYTHINGINTHATBOXSOITCANBEUSEFULANDINONEFPLASE-class.
- * @author Israel Nickerson aka Jewpigeon
+ * Final class with static methods. WEPUTEVERYTHINGINTHATBOXSOITCANBEUSEFUL-class. Very bad, it's very bad. Just bad.
  * @see java.io.File
  * @see FileUtil
  * @see Cipher
